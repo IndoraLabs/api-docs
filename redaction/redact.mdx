@@ -1,11 +1,10 @@
 ---
 title: "Launch Redaction"
-method: POST
-path: /files/{fileId}/redact
+openapi: POST /files/{fileId}/redact
 ---
 
-Start an auto-redaction job on a file.  
-Supports optional entity targeting (faces, plates, PII, etc.) and frame sampling rate.
+Start an **auto-redaction job** on a file.  
+You can target specific entities (faces, license plates, PII, etc.) and control frame sampling for performance vs. accuracy.
 
 ## Authorizations
 - **Authorization** (string, header, required)  
@@ -19,8 +18,41 @@ Supports optional entity targeting (faces, plates, PII, etc.) and frame sampling
 - **targets** (string, optional) – comma-separated list of entities to redact  
 - **sampleFps** (integer, optional) – frame sampling rate (1–30)
 
-## Response (202)
-```json
+---
+
+## Example Requests
+
+```bash cURL title="cURL Example" icon="terminal"
+curl -X POST 'https://api.indoralabs.com/files/123e4567/redact' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{ "targets": "faces,plates", "sampleFps": 10 }'
+javascript
+Copy code
+const res = await fetch("https://api.indoralabs.com/files/123e4567/redact", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ targets: "faces,plates", sampleFps: 10 })
+});
+const data = await res.json();
+console.log(data);
+typescript
+Copy code
+import axios from "axios";
+
+const res = await axios.post(
+  "https://api.indoralabs.com/files/123e4567/redact",
+  { targets: "faces,plates", sampleFps: 10 },
+  { headers: { Authorization: "Bearer YOUR_API_KEY" } }
+);
+
+console.log(res.data);
+Response (202 Accepted)
+json
+Copy code
 {
   "ok": true,
   "jobId": "job-123",
@@ -32,16 +64,15 @@ Copy code
 
 ---
 
-#### `redaction-status.mdx`
+### **`redaction-status.mdx`**
 ```mdx
 ---
 title: "Poll Redaction Status"
-method: GET
-path: /files/{fileId}/redaction/status
+openapi: GET /files/{fileId}/redaction/status
 ---
 
-Check the current status of a redaction job.  
-Poll this endpoint until status is `succeeded` or `failed`.
+Check the status of a redaction job.  
+👉 Clients should poll this endpoint until the status becomes `succeeded` or `failed`.
 
 ## Authorizations
 - **Authorization** (string, header, required)
@@ -49,8 +80,16 @@ Poll this endpoint until status is `succeeded` or `failed`.
 ## Path Parameters
 - **fileId** (string, required)
 
-## Response (200)
-```json
+---
+
+## Example Request
+
+```bash cURL title="cURL Example"
+curl -X GET 'https://api.indoralabs.com/files/123e4567/redaction/status' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+Example Responses
+json
+Copy code
 { "status": "pending" }
 json
 Copy code
@@ -63,15 +102,14 @@ Copy code
 
 ---
 
-#### `redaction-signed-url.mdx`
+### **`redaction-signed-url.mdx`**
 ```mdx
 ---
 title: "Get Redacted File"
-method: GET
-path: /files/{fileId}/redaction/signed-url
+openapi: GET /files/{fileId}/redaction/signed-url
 ---
 
-Retrieve a signed URL to preview or download the redacted file.
+Retrieve a **time-limited signed URL** to preview or download the redacted file.
 
 ## Authorizations
 - **Authorization** (string, header, required)
@@ -82,16 +120,26 @@ Retrieve a signed URL to preview or download the redacted file.
 ## Query Parameters
 - **expires** (integer, optional, default 600) – Expiration in seconds (60–3600)
 
-## Response (200)
-```json
+---
+
+## Example Request
+
+```bash cURL title="cURL Example"
+curl -X GET 'https://api.indoralabs.com/files/123e4567/redaction/signed-url?expires=600' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+javascript
+Copy code
+const res = await fetch("https://api.indoralabs.com/files/123e4567/redaction/signed-url?expires=600", {
+  headers: { Authorization: "Bearer YOUR_API_KEY" }
+});
+const data = await res.json();
+console.log(data);
+Response (200 OK)
+json
+Copy code
 {
   "url": "https://signed-url-to-redacted.mp4",
   "bucket": "my-redact-bucket",
   "key": "redacted/org/file.mp4",
   "expires": 600
 }
-css
-Copy code
-
----
-

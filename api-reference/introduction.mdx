@@ -1,33 +1,49 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introduction"
+description: "Overview of Indora Labs' Indexing & Redaction API"
 ---
 
 <Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
+  The Indora Labs API powers indexing, semantic search, and policy-driven redaction for video, audio, and text files.  
+  This section provides a reference for all API endpoints.
 </Note>
 
 ## Welcome
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+The **Indora Labs API** is designed for both GovTech compliance and commercial use cases.  
+It supports **240+ file types**, enabling:
+
+- **Indexing**: Extract and embed content from text, audio, and video.  
+- **Search**: Perform hybrid semantic + keyword queries.  
+- **Redaction**: Auto-redact sensitive entities or retrieve redaction boxes for manual workflows.  
 
 <Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
+  title="API Specification"
+  icon="terminal"
+  href="/api-reference/openapi.json"
 >
-  View the OpenAPI specification file
+  View the full OpenAPI specification file
 </Card>
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API endpoints require a **Bearer token**.  
+Include it in your request headers:
 
-```json
+```http
+Authorization: Bearer <YOUR_API_KEY>
+OpenAPI security configuration:
+
 "security": [
   {
     "bearerAuth": []
   }
 ]
 ```
+
+Next Steps
+Start with the Search API to query your indexed files.
+
+Learn how to Launch Redactions and poll for results.
+
+Explore File Upload to bring your own data into the system.
