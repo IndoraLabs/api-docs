@@ -1,0 +1,155 @@
+---
+title: "Search API"
+description: "Perform semantic and metadata-based search across files"
+icon: "magnifying-glass"
+---
+
+The **Search API** enables powerful, hybrid (semantic + keyword) search across all uploaded files — video transcripts, audio transcriptions, and text documents.  
+It blends semantic embeddings with BM25 keyword scoring, so you get results that are both contextually relevant *and* textually precise.
+
+---
+
+## Endpoint
+
+`POST /search/semantic`
+
+---
+
+## Parameters
+
+<ParamField body="q" type="string" required>
+Your search query. Supports natural language or keyword queries.  
+Example: `"financial fraud investigation"`.
+</ParamField>
+
+<ParamField body="caseId" type="string (UUID)">
+Optional. Restrict search results to files linked to a specific case.
+</ParamField>
+
+<ParamField body="fileId" type="string (UUID)">
+Optional. Restrict search to a single file.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="20">
+Optional. Number of results to return. Range: 1–50.
+</ParamField>
+
+<ParamField body="dateFrom" type="string (date or ISO)">
+Optional. Start date filter. Accepts `YYYY-MM-DD` or full ISO datetime.
+</ParamField>
+
+<ParamField body="dateTo" type="string (date or ISO)">
+Optional. End date filter. Accepts `YYYY-MM-DD` or full ISO datetime.
+</ParamField>
+
+<ParamField header="Authorization" type="string" required>
+Bearer token for API authentication. Format: `Bearer YOUR_API_KEY`.
+</ParamField>
+
+---
+
+## Example Requests
+
+### Basic semantic search
+
+```bash cURL 
+curl -X POST 'https://api.indoralabs.com/search/semantic' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "q": "financial fraud investigation",
+    "limit": 5
+  }'
+  ```
+
+Restrict to a case
+```bash cURL 
+curl -X POST 'https://api.indoralabs.com/search/semantic' \ 
+-H 'Authorization: Bearer YOUR_API_KEY' \ 
+-H 'Content-Type: application/json' \ 
+-d '{ 
+  "q": "email attachments mentioning contracts", 
+  "caseId": "c2f3a4e7-2b15-44e3-a820-1234567890ab", 
+  "limit": 5 
+  }' 
+``` 
+
+Apply date range filters
+```bash cURL 
+curl -X POST 'https://api.indoralabs.com/search/semantic' \ 
+-H 'Authorization: Bearer YOUR_API_KEY' \ 
+-H 'Content-Type: application/json' \ 
+-d '{ 
+  "q": "license renewals", 
+  "dateFrom": "2025-01-01", 
+  "dateTo": "2025-03-01" 
+  }' 
+  ``` 
+
+Example Response
+```json Success { 
+  "results": [ 
+    { 
+      "fileId": "123e4567-e89b-12d3-a456-426614174000", 
+      "snippet": "The license renewal was approved on February 3rd...", 
+      "score": 0.91, 
+      "metadata": { 
+        "filename": "contracts.pdf", 
+        "pages": 12, 
+        "createdAt": "2025-02-03T15:21:00Z" 
+        } 
+      }, 
+      { 
+        "fileId": "987e6543-e21b-12d3-a456-426614174999", 
+        "snippet": "All vehicle registrations must be renewed annually...", 
+        "score": 0.84, 
+        "metadata": { 
+          "filename": "policy.docx", 
+          "pages": 3, 
+          "createdAt": "2025-02-10T10:05:00Z" 
+        } 
+      } 
+    ], 
+    "range": { 
+      "fromUtc": "2025-01-01T00:00:00.000Z", 
+      "toUtc": "2025-03-01T23:59:59.999Z" 
+    } 
+  } 
+``` 
+
+How It Works
+<Steps> 
+  <Step title="Query embedding"> Your query text is transformed into a semantic embedding using AWS Bedrock models. </Step> 
+  <Step title="Vector + BM25 search"> The embedding is compared against indexed vectors, while BM25 keyword scoring ensures text precision. </Step> 
+  <Step title="Hybrid scoring"> Results are ranked with a weighted blend: - `vecWeight = 0.55` (semantic similarity) - `bm25Weight = 0.45` (keyword match) </Step> 
+  <Step title="Filters applied"> Case, file, and date filters are applied before final results are returned. </Step> 
+</Steps>
+
+Use Cases
+<CardGroup cols={2}> 
+  <Card 
+  title="Investigations" 
+  icon="magnifying-glass"> 
+    Find hidden references across thousands of files, even if exact keywords differ. 
+  </Card> 
+    
+  <Card 
+    title="FOIA / IPRA compliance" 
+    icon="scale-balanced"> 
+    Quickly identify responsive records for public records requests. 
+  </Card> 
+  
+  <Card 
+    title="Enterprise knowledge" 
+    icon="building"> 
+    Search across contracts, HR docs, and transcripts semantically. 
+  </Card> 
+  
+  <Card 
+    title="Legal discovery" 
+    icon="gavel"> 
+    Blend concept-level matching with date filters for case relevance. 
+  </Card> 
+</CardGroup>
+
+<Tip> Use natural language queries like *“emails about tax fraud”* instead of just keywords for better semantic results. </Tip>
