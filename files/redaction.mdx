@@ -1,0 +1,179 @@
+---
+title: "Redaction API"
+description: "Automated and manual redaction of video and file content"
+icon: "scissors"
+---
+
+The **Redaction API** lets you remove sensitive data from video files using either:  
+
+- **Auto-redaction** → AI applies blur/mask to detected entities (faces, plates, PII, etc.).  
+- **Detection mode** → Returns raw bounding boxes for manual review or overlay rendering.  
+
+⚠️ Redaction jobs are **asynchronous**. You must poll the **status endpoint** to retrieve results.
+
+---
+
+## Endpoints Overview
+
+- `POST /files/:id/redact` → Launch auto-redaction job  
+- `GET /files/:id/redaction/status` → Poll for completion  
+- `GET /files/:id/redaction/signed-url` → Download/view redacted video  
+- `GET /files/:id/redactions` → Retrieve saved redaction boxes (manual/auto)  
+- `PATCH /files/:id/redactions` → Save or overwrite custom redaction boxes  
+- `POST /files/:id/redactions/finalize` → Mark file as finalized redacted  
+
+---
+
+## Launch Auto-Redaction
+
+`POST /files/:id/redact`
+
+<ParamField body="targets" type="string">
+Optional. Comma-separated list of entities (e.g., `"faces,plates,pii"`).
+</ParamField>
+
+<ParamField body="sampleFps" type="integer">
+Optional. Frame sampling rate (1–30 fps).
+</ParamField>
+
+### Example (cURL)
+
+``` bash cURL 
+curl -X POST 'https://api.indoralabs.com/files/123/redact' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{ "targets": "faces,plates", "sampleFps": 5 }'
+Example (Axios JS)
+```
+
+``` json
+import axios from "axios";
+
+const res = await axios.post(
+  "https://api.indoralabs.com/files/123/redact",
+  { targets: "faces,plates", sampleFps: 5 },
+  { headers: { Authorization: `Bearer ${apiKey}` } }
+);
+```
+
+Example (TypeScript)
+
+``` json
+const launchRedact = async (fileId: string, apiKey: string) => {
+  const res = await fetch(`https://api.indoralabs.com/files/${fileId}/redact`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ targets: "faces", sampleFps: 3 })
+  });
+
+  return res.json();
+};
+```
+
+Poll Redaction Status
+GET /files/:id/redaction/status
+
+Poll this endpoint until status is "succeeded".
+
+Example Response
+
+``` json
+{ "status": "pending" }
+```
+
+``` json
+{ "status": "succeeded", "outputS3Uri": "s3://bucket/redacted/org123/file123.mp4" }
+```
+
+``` json
+{ "status": "failed", "error": "Detection model timeout" }
+```
+
+Get Redacted Video
+GET /files/:id/redaction/signed-url
+
+Returns a time-limited signed URL to preview or download the redacted file.
+
+``` bash cURL 
+curl -X GET 'https://api.indoralabs.com/files/123/redaction/signed-url' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+Response:
+
+``` json
+{
+  "url": "https://signed-url-to-redacted.mp4",
+  "expires": 600
+
+}
+```
+
+Detection Mode (Boxes Only)
+Instead of blurring, you can request bounding boxes and handle rendering yourself.
+
+GET /files/:id/redactions → Fetch saved detections/flags
+PATCH /files/:id/redactions → Save/update custom boxes
+
+Example GET
+
+``` bash cURL 
+curl -X GET 'https://api.indoralabs.com/files/123/redactions' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+Response:
+
+``` json
+{
+  "redactions": [
+    {
+      "id": "r1",
+      "type": "Face",
+      "reason": "PII",
+      "approved": true,
+      "coordinates": { "x": 100, "y": 200, "width": 80, "height": 80 }
+    }
+  ]
+}
+```
+
+Example PATCH (overwrite boxes)
+
+``` bash cURL 
+curl -X PATCH 'https://api.indoralabs.com/files/123/redactions' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "boxes": [
+      { "type": "Plate", "reason": "Sensitive", "x": 300, "y": 400, "width": 100, "height": 40 }
+    ]
+  }'
+```
+
+Finalize Redactions
+After reviewing/approving all boxes:
+
+POST /files/:id/redactions/finalize
+
+``` bash cURL 
+curl -X POST 'https://api.indoralabs.com/files/123/redactions/finalize' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+Response:
+
+```
+{ "file": { "id": "file123", "reviewStatus": "redacted" } }
+```
+
+Workflow Summary
+<Steps> 
+    <Step title="Launch redaction job"> Call `POST /files/:id/redact` with desired targets. </Step> 
+    <Step title="Poll for status"> Use `GET /files/:id/redaction/status` until `succeeded`. </Step> 
+    <Step title="Get results"> Either download video via `/signed-url` or fetch boxes via `/redactions`. 
+    </Step> <Step title="Finalize (optional)"> Mark file as redacted when QA is done. </Step> 
+</Steps>
+<Warning> Always poll the status endpoint — redaction is not instant. Large files can take several minutes. </Warning> <Tip> Use **detection mode** (boxes only) if you want manual control or overlay rendering instead of auto-blurring. </Tip> 

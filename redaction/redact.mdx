@@ -1,0 +1,97 @@
+---
+title: "Launch Redaction"
+method: POST
+path: /files/{fileId}/redact
+---
+
+Start an auto-redaction job on a file.  
+Supports optional entity targeting (faces, plates, PII, etc.) and frame sampling rate.
+
+## Authorizations
+- **Authorization** (string, header, required)  
+  Bearer authentication header: `Bearer <token>`
+
+## Path Parameters
+- **fileId** (string, required)  
+  ID of the file to redact.
+
+## Request Body
+- **targets** (string, optional) – comma-separated list of entities to redact  
+- **sampleFps** (integer, optional) – frame sampling rate (1–30)
+
+## Response (202)
+```json
+{
+  "ok": true,
+  "jobId": "job-123",
+  "status": "pending",
+  "outputS3Uri": "s3://redacted/org/file.mp4"
+}
+yaml
+Copy code
+
+---
+
+#### `redaction-status.mdx`
+```mdx
+---
+title: "Poll Redaction Status"
+method: GET
+path: /files/{fileId}/redaction/status
+---
+
+Check the current status of a redaction job.  
+Poll this endpoint until status is `succeeded` or `failed`.
+
+## Authorizations
+- **Authorization** (string, header, required)
+
+## Path Parameters
+- **fileId** (string, required)
+
+## Response (200)
+```json
+{ "status": "pending" }
+json
+Copy code
+{ "status": "succeeded", "outputS3Uri": "s3://redacted/org/file.mp4" }
+json
+Copy code
+{ "status": "failed", "error": "Detection model timeout" }
+yaml
+Copy code
+
+---
+
+#### `redaction-signed-url.mdx`
+```mdx
+---
+title: "Get Redacted File"
+method: GET
+path: /files/{fileId}/redaction/signed-url
+---
+
+Retrieve a signed URL to preview or download the redacted file.
+
+## Authorizations
+- **Authorization** (string, header, required)
+
+## Path Parameters
+- **fileId** (string, required)
+
+## Query Parameters
+- **expires** (integer, optional, default 600) – Expiration in seconds (60–3600)
+
+## Response (200)
+```json
+{
+  "url": "https://signed-url-to-redacted.mp4",
+  "bucket": "my-redact-bucket",
+  "key": "redacted/org/file.mp4",
+  "expires": 600
+}
+css
+Copy code
+
+---
+

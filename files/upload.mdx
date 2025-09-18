@@ -1,0 +1,124 @@
+---
+title: "File Upload"
+description: "Upload files securely to Indora Labs for indexing and redaction"
+icon: "cloud-arrow-up"
+---
+
+The **File Upload API** lets you send files into the Indora Labs platform. Files are stored securely in S3, linked to cases if desired, and passed through our ingestion pipeline (text extraction, transcription, embedding).  
+Uploads can be **single-part** (small files) or **multi-part** (large files).
+
+---
+
+## Upload Flow at a Glance
+
+<Steps>
+<Step title="Init upload">
+Call `POST /upload/init` with the filename and size. The API responds with signed URL(s) for direct S3 upload.
+</Step>
+
+<Step title="Upload file">
+Use the signed URL to `PUT` the file (or multipart chunks).
+</Step>
+
+<Step title="Complete upload">
+Confirm the upload with `POST /upload/complete`. This finalizes metadata and enqueues indexing.
+</Step>
+</Steps>
+
+---
+
+## 1. Initialize an Upload
+
+**Endpoint:** `POST /upload/init`
+
+<ParamField body="filename" type="string" required>
+Name of the file being uploaded.
+</ParamField>
+
+<ParamField body="contentType" type="string">
+MIME type of the file.
+</ParamField>
+
+<ParamField body="sizeBytes" type="integer">
+Size of the file in bytes. Used to determine single vs multipart upload.
+</ParamField>
+
+<Tip>
+If the file is larger than 50MB, the API will automatically choose multipart mode.
+</Tip>
+
+### Example
+
+```bash cURL
+curl -X POST 'https://api.indoralabs.com/upload/init' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "filename": "evidence.pdf",
+    "contentType": "application/pdf",
+    "sizeBytes": 1200000
+  }'
+```
+
+Response (single file mode):
+``` json
+{
+  "mode": "single",
+  "uploadId": "uuid-123",
+  "key": "org123/raw/doc123/evidence.pdf",
+  "putUrl": "https://s3.amazonaws.com/...signed-url..."
+}
+```
+
+2. Upload the File
+For single-part, just PUT to putUrl.
+
+For multipart, first call GET /upload/sign-part per chunk, then PUT each chunk.
+
+Multipart Signing Example
+```bash cURL
+curl -X GET 'https://api.indoralabs.com/upload/sign-part?key=org123/raw/doc123/large.mp4&uploadIdS3=abcd1234&partNumber=1' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+Response:
+``` JSON
+{ "url": "https://s3.amazonaws.com/...signed-part-url..." }
+```
+
+3. Complete the Upload
+Endpoint: POST /upload/complete
+
+<ParamField body="uploadId" type="string (UUID)" required> Upload session ID from `/upload/init`. </ParamField> <ParamField body="key" type="string" required> S3 key returned from `/upload/init`. </ParamField> <ParamField body="caseId" type="string (UUID)"> Optional. Link this file directly to an existing case. </ParamField>
+
+Example
+```bash cURL
+curl -X POST 'https://api.indoralabs.com/upload/complete' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "uploadId": "uuid-123",
+    "key": "org123/raw/doc123/evidence.pdf",
+    "caseId": "c2f3a4e7-2b15-44e3-a820-1234567890ab"
+  }'
+```
+
+Response:
+``` JSON
+{
+  "ok": true,
+  "file": {
+    "id": "file-uuid",
+    "name": "evidence.pdf",
+    "sizeBytes": 1200000,
+    "mimeType": "application/pdf",
+    "s3Bucket": "indora-uploads",
+    "s3Key": "org123/raw/doc123/evidence.pdf",
+    "createdAt": "2025-09-18T17:21:00Z"
+  }
+}
+````
+
+<AccordionGroup> <Accordion title="400 Bad Request"> ```json { "error": "Missing org scope" } ``` </Accordion> <Accordion title="401 Unauthorized"> ```json { "error": "Unauthorized", "message": "Invalid or missing API key" } ``` </Accordion> <Accordion title="500 Upload bucket not configured"> ```json { "error": "Upload bucket not configured (set S3_BUCKET or UPLOAD_BUCKET)" } ``` </Accordion> </AccordionGroup>
+Tips & Best Practices
+<Info> - Use multipart for files larger than 50MB. - Always complete the upload, or your file will not be indexed. - Attach to a case at upload time if you want case-scoped search immediately. </Info> <Check> After calling `/upload/complete`, your file is **queued for parsing and embedding**. You can then access it through the [Files API](/files). </Check>

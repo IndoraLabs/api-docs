@@ -29,6 +29,14 @@
             ]
           },
           {
+            "group": "Redaction",
+            "pages": [
+              "redaction/index",
+              "redaction/redact"
+            ]
+          },
+
+          {
             "group": "Customization",
             "pages": [
               "essentials/settings",
