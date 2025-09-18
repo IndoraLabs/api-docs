@@ -1,140 +1,43 @@
-# Indora Labs Indexing & Redaction API
+# Mintlify Starter Kit
 
-The **Indora Labs API** provides secure, scalable indexing and redaction of **video, audio, and text** across 240+ file types. Built for GovTech compliance and commercial use cases, the API enables transcription, embedding, and policy-driven redaction with per-page/minute pricing.
+Use the starter kit to get your docs deployed and ready to customize.
 
----
+Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
 
-## Features
+- Guide pages
+- Navigation
+- Customizations
+- API reference pages
+- Use of popular components
 
-- **Indexing**
-  - Video, audio, and text ingestion  
-  - Automatic transcription and text extraction  
-  - Embedding generation for semantic search  
+**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
 
-- **Redaction**
-  - Video: object/frame-based redaction  
-  - Audio: voice and sensitive phrase removal  
-  - Text: PII and keyword policy redaction  
+## Development
 
-- **Compliance-Ready**
-  - Designed for FOIA/IPRA, CJIS, and enterprise security standards  
-  - Efficient storage and vector DB integration  
+Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
 
----
-
-## Authentication
-
-All requests require an API key. Include it in the header:
-
-Authorization: Bearer <YOUR_API_KEY>
-
-# Endpoints
-
-## Indexing
-
-POST /index/text
-Index raw text or documents.
-Body:
-
-```http
-{
-  "file_uri": "s3://bucket/file.txt",
-  "tenant_id": "abc123"
-}
+```
+npm i -g mint
 ```
 
-POST /index/audio
-Transcribe and index audio files.
-Body:
+Run the following command at the root of your documentation, where your `docs.json` is located:
 
-```http
-{
-  "file_uri": "s3://bucket/audio.mp3",
-  "tenant_id": "abc123"
-}
+```
+mint dev
 ```
 
-POST /index/video
-Extract frames and transcribe audio from video.
-Body:
+View your local preview at `http://localhost:3000`.
 
-```http
-{
-  "file_uri": "s3://bucket/video.mp4",
-  "tenant_id": "abc123",
-  "sample_fps": 10
-}
-```
+## Publishing changes
 
-## Redaction
-POST /redact/text
-Redact sensitive terms based on policy.
-Body:
+Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
 
-```http
-{
-  "file_uri": "s3://bucket/file.txt",
-  "tenant_id": "abc123",
-  "policy": ["SSN", "DOB"]
-}
-```
+## Need help?
 
-POST /redact/audio
-Remove sensitive audio segments.
-Body:
+### Troubleshooting
 
-```http
-{
-  "file_uri": "s3://bucket/audio.wav",
-  "tenant_id": "abc123",
-  "policy": ["names", "addresses"]
-}
-```
+- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
+- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
 
-POST /redact/video
-Redact objects or regions in video frames.
-Body:
-
-```http
-{
-  "file_uri": "s3://bucket/video.mp4",
-  "tenant_id": "abc123",
-  "policy": ["faces", "license_plates"]
-}
-```
-
-## Response Format
-All endpoints return JSON:
-
-```http
-{
-  "status": "success",
-  "job_id": "xyz789",
-  "output_uri": "s3://bucket/output/file"
-}
-```
-
-## Pricing
-
-Text/Audio Indexing: $0.01 per page
-
-Video Indexing: $0.50 per minute
-
-Text/Audio Redaction: $0.01 per page
-
-Video Redaction: $0.50 per minute
-
-## Use Cases
-Government: FOIA/IPRA compliance, CJIS redaction
-
-Commercial: discovery, media compliance, call center security
-
-## Getting Started
-Sign up for an API key from Indora Labs.
-
-Send your first indexing request.
-
-Retrieve results from your configured output bucket.
-
-## Support
-For support, contact support@indoralabs.com or open an issue in this repository.
+### Resources
+- [Mintlify documentation](https://mintlify.com/docs)
