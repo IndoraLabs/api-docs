@@ -1,11 +1,28 @@
 {
   "name": "Indora Labs API Docs",
   "logo": "/logo.png",
-  "primaryColor": "#0052cc",
-  "sidebar": [
-    { "section": "Overview", "pages": ["docs/overview.md"] },
-    { "section": "Authentication", "pages": ["docs/authentication.md"] },
-    { "section": "API Endpoints", "pages": ["docs/indexing.md", "docs/redaction.md"] },
-    { "section": "Pricing", "pages": ["docs/pricing.md"] }
+  "favicon": "/favicon.ico",
+  "colors": {
+    "primary": "#0052cc",
+    "light": "#f5f7fa",
+    "dark": "#0a0a0a"
+  },
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": ["docs/overview.md"]
+    },
+    {
+      "group": "Authentication",
+      "pages": ["docs/authentication.md"]
+    },
+    {
+      "group": "API Endpoints",
+      "pages": ["docs/indexing.md", "docs/redaction.md"]
+    },
+    {
+      "group": "Pricing",
+      "pages": ["docs/pricing.md"]
+    }
   ]
 }
