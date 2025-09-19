@@ -292,7 +292,7 @@
         "responses": { "200": { "description": "Signed URL" }, "404": { "description": "Not found" } }
       }
     },
-    "/files/{fileId}/redact": {
+    "/files/{id}/redact": {
       "post": {
         "description": "Launch redaction job for a file.",
         "parameters": [
@@ -310,7 +310,7 @@
         }
       }
     },
-    "/files/{fileId}/redaction/status": {
+    "/files/{id}/redaction/status": {
       "get": {
         "description": "Check redaction status.",
         "parameters": [
@@ -319,7 +319,7 @@
         "responses": { "200": { "description": "Status response" } }
       }
     },
-    "/files/{fileId}/redaction/signed-url": {
+    "/files/{id}/redaction/signed-url": {
       "get": {
         "description": "Get signed URL for redacted file.",
         "parameters": [
@@ -328,7 +328,7 @@
         "responses": { "200": { "description": "Signed URL" }, "404": { "description": "Not found" } }
       }
     },
-    "/files/{fileId}/redactions": {
+    "/files/{id}/redactions": {
       "get": {
         "description": "Get redaction boxes for a file.",
         "parameters": [{ "name": "fileId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
@@ -341,7 +341,7 @@
         "responses": { "200": { "description": "Redactions updated" } }
       }
     },
-    "/files/{fileId}/redactions/finalize": {
+    "/files/{id}/redactions/finalize": {
       "post": {
         "description": "Finalize redactions on a file.",
         "parameters": [{ "name": "fileId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
@@ -363,7 +363,7 @@
         "responses": { "202": { "description": "Detection job queued" } }
       }
     },
-    "/video-detections/file/{fileId}": {
+    "/video-detections/file/{id}": {
       "get": {
         "description": "Get all detection runs for a file.",
         "parameters": [{ "name": "fileId", "in": "path", "schema": { "type": "string", "format": "uuid" }, "required": true }],
@@ -388,7 +388,7 @@
         "responses": { "204": { "description": "Deleted" } }
       }
     },
-    "/video-detections/file/{fileId}/detections": {
+    "/video-detections/file/{id}/detections": {
       "get": {
         "description": "Get raw detections array for overlay rendering.",
         "parameters": [{ "name": "fileId", "in": "path", "schema": { "type": "string", "format": "uuid" }, "required": true }],
