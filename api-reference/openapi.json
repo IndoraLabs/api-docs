@@ -14,9 +14,7 @@
     }
   ],
   "security": [
-    {
-      "bearerAuth": []
-    }
+    { "apiKeyAuth": [] }
   ],
   "tags": [
     {
@@ -92,6 +90,9 @@
         }
       },
       "post": {
+        "security": [
+      { "apiKeyAuth": [] }
+    ],
         "tags": [
           ""
         ],
@@ -4066,10 +4067,10 @@
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
       }
     }
   }
