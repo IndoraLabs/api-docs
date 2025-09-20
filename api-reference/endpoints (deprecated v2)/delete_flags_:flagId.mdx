@@ -1,0 +1,47 @@
+---
+title: "DELETE /flags/:flagId"
+---
+
+**Tag:** Flags
+
+**Summary:** DELETE /flags/:flagId
+
+**Description:** Endpoint for flags operations.
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/flags/:flagId`
+
+### Method
+`DELETE`
+
+### Path & Query Parameters
+_None_
+
+### Request Body
+
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `id` | string (uuid) | id field from file_redaction_flags09192348. | 7f20f464-83e0-460d-b3e6-611c379c4341 |
+| `file_id` | string (uuid) | file_id field from file_redaction_flags09192348. | de13d372-a870-4eea-b975-9060d442f38c |
+| `kind` | string | kind field from file_redaction_flags09192348. | Face |
+| `reason` | string | reason field from file_redaction_flags09192348. | This is an officer's face - Paul Blart |
+| `approved` | boolean | approved field from file_redaction_flags09192348. | False |
+| `ts_seconds` | number | ts_seconds field from file_redaction_flags09192348. | 0.569133 |
+| `coords` | string | coords field from file_redaction_flags09192348. | {"x": 286.5, "y": 148, "width": 24, "height": 24} |
+| `created_by` | string (uuid) | created_by field from file_redaction_flags09192348. | ab99f432-1141-43bf-a826-ea015838179f |
+| `created_at` | string | created_at field from file_redaction_flags09192348. | 2025-09-05 17:05:19.723 -0500 |
+| `updated_at` | string | updated_at field from file_redaction_flags09192348. | 2025-09-05 17:05:19.723 -0500 |
+| `end_seconds` | number | end_seconds field from file_redaction_flags09192348. |  |
+| `ts_end_seconds` | number | ts_end_seconds field from file_redaction_flags09192348. | 0.819133 |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+

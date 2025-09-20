@@ -1,0 +1,45 @@
+---
+title: "GET /video-detections"
+---
+
+**Tag:** Detections
+
+**Summary:** GET /video-detections
+
+**Description:** Endpoint for detections operations.
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/video-detections`
+
+### Method
+`GET`
+
+### Path & Query Parameters
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `limit` | query | integer | False | Max items to return. Default 50. |
+| `offset` | query | integer | False | Offset for pagination. Default 0. |
+
+### Request Body
+
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `id` | string (uuid) | id field from video_detections09192349. | d2f0cf30-b573-4797-97d4-aaab3ec2c5f1 |
+| `tenant_id` | string (uuid) | tenant_id field from video_detections09192349. | 743db90f-7e76-49f7-8d4e-5f42a16efc06 |
+| `file_id` | string (uuid) | file_id field from video_detections09192349. | de13d372-a870-4eea-b975-9060d442f38c |
+| `case_id` | number | case_id field from video_detections09192349. |  |
+| `doc_id` | string (uuid) | doc_id field from video_detections09192349. | de13d372-a870-4eea-b975-9060d442f38c |
+| `detections` | string | detections field from video_detections09192349. | [] |
+| `created_at` | string | created_at field from video_detections09192349. | 2025-09-07 13:48:43.927 -0500 |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+

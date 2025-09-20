@@ -1,0 +1,43 @@
+---
+title: "GET /files"
+---
+
+**Tag:** Files
+
+**Summary:** List files
+
+**Description:** 
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/files`
+
+### Method
+`GET`
+
+### Path & Query Parameters
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `search` | query | string | False | Free-text search across file metadata. |
+| `status` | query | string | False | Filter by review or processing status. |
+| `caseId` | query | string (uuid) | False | Filter by related case. |
+| `limit` | query | integer | False | Page size. |
+| `offset` | query | integer | False | Offset for pagination. |
+
+### Request Body
+
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `files` | array |  |  |
+| `total` | integer | Total rows matching the filter. |  |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+

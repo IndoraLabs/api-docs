@@ -1,0 +1,44 @@
+---
+title: "POST /upload/complete"
+---
+
+**Tag:** Uploads
+
+**Summary:** Complete an upload
+
+**Description:** Finalize upload, persist File row, optionally link to a case, enqueue parsing/embedding.
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/upload/complete`
+
+### Method
+`POST`
+
+### Path & Query Parameters
+_None_
+
+### Request Body
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `uploadId` | string | Server-side upload session id from /upload/init. |  |
+| `key` | string | S3 key that was uploaded. |  |
+| `uploadIdS3` | string | S3 UploadId (for multipart). |  |
+| `parts` | array | Completed multipart parts. |  |
+| `etag` | string | ETag returned by S3 for single-part upload. |  |
+| `caseId` | string (uuid) | Optional: attach file to case upon finalization. |  |
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `ok` | boolean |  |  |
+| `file` | object |  |  |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+

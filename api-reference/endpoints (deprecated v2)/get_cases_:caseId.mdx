@@ -1,0 +1,46 @@
+---
+title: "GET /cases/:caseId"
+---
+
+**Tag:** Cases
+
+**Summary:** GET /cases/:caseId
+
+**Description:** Endpoint for cases operations.
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/cases/:caseId`
+
+### Method
+`GET`
+
+### Path & Query Parameters
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `limit` | query | integer | False | Max items to return. Default 50. |
+| `offset` | query | integer | False | Offset for pagination. Default 0. |
+
+### Request Body
+
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `id` | string (uuid) | id field from case_timeline09192348. | aa030117-8ea7-4a1a-b300-4bc20778d3b0 |
+| `case_id` | string (uuid) | case_id field from case_timeline09192348. | b612ec73-6657-4a4b-bfe9-959ac3e30cc5 |
+| `event_date` | string | event_date field from case_timeline09192348. | 2025-08-17 17:03:27.851 -0500 |
+| `title` | string | title field from case_timeline09192348. | Case Created |
+| `description` | string | description field from case_timeline09192348. | Case “Test Case 2” created |
+| `event_type` | string | event_type field from case_timeline09192348. | created |
+| `user_id` | string (uuid) | user_id field from case_timeline09192348. | ab99f432-1141-43bf-a826-ea015838179f |
+| `user_name` | string | user_name field from case_timeline09192348. | josh kirk |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+

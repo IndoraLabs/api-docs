@@ -1,0 +1,39 @@
+---
+title: "POST /semantic"
+---
+
+**Tag:** Semantic
+
+**Summary:** POST /semantic
+
+**Description:** Endpoint for semantic operations.
+
+### Security
+Bearer token (`Authorization: Bearer <JWT>`)
+
+### Path
+`/semantic`
+
+### Method
+`POST`
+
+### Path & Query Parameters
+_None_
+
+### Request Body
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+
+### 200 Response
+| Field | Type | Description | Example |
+|------|------|-------------|---------|
+| `error` | string | Short error code or category. |  |
+| `message` | string | Human-readable error explanation. |  |
+| `details` | object | Optional structured error details for debugging. |  |
+
+### Error Responses
+- **400**: Bad request. Returns `Error` object.
+- **401**: Unauthorized.
+- **404**: Not found.
+- **500**: Internal server error.
+
