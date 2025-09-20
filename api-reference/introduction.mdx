@@ -26,26 +26,10 @@ With support for **240+ file types**, Indora powers:
 - **Search** → Run hybrid semantic + keyword queries across sanitized data.  
 - **Redaction** → Apply natural-language policies and receive both redacted files and JSON metadata for downstream workflows.  
 
-<Card
-  title="API Specification"
-  icon="terminal"
-  href="/api-reference/openapi.json"
->
-  View the full OpenAPI specification file
-</Card>
-
 ## Authentication
 
-All API endpoints require a **Bearer token**.  
+All API endpoints require an **API key**.  
 Include it in your request headers:
 
 ```http
-Authorization: Bearer <YOUR_API_KEY>
-OpenAPI security configuration:
-
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+x-api-key: <YOUR_API_KEY>

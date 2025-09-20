@@ -8,6 +8,14 @@
     "dark": "#023E8A" 
   },
   "favicon": "/favicon.svg",
+  "api": {
+      "mdx": {
+        "auth": {
+          "method": "key",
+          "name": "x-api-key"
+        }
+      }
+  },
   "navigation": {
     "tabs": [
       {
