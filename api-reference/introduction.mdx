@@ -4,27 +4,60 @@ description: "Indora Labs API – The Programmable Compliance Refinery"
 ---
 
 <Note>
-  The Indora Labs API is the first programmable compliance refinery.  
-  In a single call, you can index, search, and sanitize video, audio, and text across 240+ file types — returning both safe artifacts and structured JSON overlays.  
+  The **Indora Labs API** is the first programmable compliance refinery.  
+  In a single call, you can index, search, control, and sanitize **video, audio, text, and images across 240+ file types** — with policy-backed audit logs, chain of custody, and JSON overlays you can trust in court.
 </Note>
 
 ## Welcome
 
-The **Indora Labs API** isn’t just another redaction tool.  
-It’s the **compliance layer every system is missing** — one API that makes raw data safe before it enters your pipelines.  
+The **Indora Labs API** isn’t just a redaction tool.  
+It’s the **compliance layer your stack has been missing** — one API that makes raw data safe, searchable, and exportable.  
 
-Unlike traditional ML-based detectors that only mask predefined objects (faces, plates, SSNs), Indora lets you define compliance in code:  
-*“Only redact police officers’ faces,” “black out all tattoos,” “strip PHI from transcripts.”*  
+Define compliance in plain English:  
+*“Blur all officer faces,” “black out tattoos,” “remove minors’ names,” “strip PHI from transcripts.”*  
 
-That’s **programmable sanitization** — fast, cheap, and production-ready.  
-Video is processed at ~10 seconds per minute, audio and text in near-real-time.  
-No brittle rules. No manual review. Just safe, usable data.  
+Unlike brittle regex rules or generic vision APIs, Indora is policy-driven, multi-modal, auditable, and fast.  
+Video processes at ~10s per minute, while text and audio run near real-time.  
 
-With support for **240+ file types**, Indora powers:  
+---
 
-- **Indexing** → Extract, embed, and normalize content from any file type (PDFs, DOCs, CAD, video, audio, and more).  
-- **Search** → Run hybrid semantic + keyword queries across sanitized data.  
-- **Redaction** → Apply natural-language policies and receive both redacted files and JSON metadata for downstream workflows.  
+## Core Capabilities
+
+<CardGroup cols={2}>
+
+<Card title="Index Anything" icon="database" href="/api-reference/endpoints/post_upload_init">
+  Normalize and extract content from **240+ file types** — PDFs, DOCs, CAD, images, audio, and video.  
+  Get structured JSON and embeddings for downstream search or AI pipelines.
+</Card>
+
+<Card title="Search Everything" icon="magnifying-glass" href="/api-reference/endpoints/post_search_semantic">
+  Run **hybrid semantic + keyword queries** across your entire dataset.  
+  Works seamlessly across documents, transcripts, and media files.
+</Card>
+
+<Card title="Policy-Driven Sanitization" icon="shield-check" href="/api-reference/sanitization">
+  Apply natural-language or custom policies.  
+  Output both sanitized files and structured JSON overlays for integration into your workflows.
+</Card>
+
+<Card title="Audit & Chain of Custody" icon="scroll" href="/api-reference/audit">
+  Every action is logged: who viewed what, when, and under which policy.  
+  Export audit logs and custody trails directly into your system.
+</Card>
+
+<Card title="Access Control" icon="key" href="/api-reference/access">
+  Restrict which users can view or export which files.  
+  Enforce role-based permissions programmatically through the API.
+</Card>
+
+<Card title="Fast & Scalable" icon="gauge" href="/api-reference/performance">
+  Handle bulk video, audio, and document processing without bottlenecks.  
+  Built for GovCloud, healthcare, and other high-compliance workloads.
+</Card>
+
+</CardGroup>
+
+---
 
 ## Authentication
 

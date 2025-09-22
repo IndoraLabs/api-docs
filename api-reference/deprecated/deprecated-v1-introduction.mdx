@@ -1,0 +1,35 @@
+---
+title: "Introduction"
+description: "Indora Labs API – The Programmable Compliance Refinery"
+---
+
+<Note>
+  The Indora Labs API is the first programmable compliance refinery.  
+  In a single call, you can index, search, and sanitize video, audio, and text across 240+ file types — returning both safe artifacts and structured JSON overlays.  
+</Note>
+
+## Welcome
+
+The **Indora Labs API** isn’t just another redaction tool.  
+It’s the **compliance layer every system is missing** — one API that makes raw data safe before it enters your pipelines.  
+
+Unlike traditional ML-based detectors that only mask predefined objects (faces, plates, SSNs), Indora lets you define compliance in code:  
+*“Only redact police officers’ faces,” “black out all tattoos,” “strip PHI from transcripts.”*  
+
+That’s **programmable sanitization** — fast, cheap, and production-ready.  
+Video is processed at ~10 seconds per minute, audio and text in near-real-time.  
+No brittle rules. No manual review. Just safe, usable data.  
+
+With support for **240+ file types**, Indora powers:  
+
+- **Indexing** → Extract, embed, and normalize content from any file type (PDFs, DOCs, CAD, video, audio, and more).  
+- **Search** → Run hybrid semantic + keyword queries across sanitized data.  
+- **Redaction** → Apply natural-language policies and receive both redacted files and JSON metadata for downstream workflows.  
+
+## Authentication
+
+All API endpoints require an **API key**.  
+Include it in your request headers:
+
+```http
+x-api-key: <YOUR_API_KEY>

@@ -14,9 +14,7 @@
     }
   ],
   "security": [
-    {
-      "apiKeyAuth": []
-    }
+    { "apiKeyAuth": [] }
   ],
   "tags": [
     {
@@ -93,10 +91,8 @@
       },
       "post": {
         "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
+      { "apiKeyAuth": [] }
+    ],
         "tags": [
           ""
         ],
@@ -787,18 +783,14 @@
     },
     "/cases/create": {
       "post": {
-        "tags": [
-          "Cases"
-        ],
+        "tags": ["Cases"],
         "summary": "POST /cases/create",
-        "description": "Create a new case to group files, detections, and redactions together under a common investigation or request. A case serves as a container for organizing related work.",
+        "description": "Create a new case.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCaseBody"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateCaseBody" }
             }
           }
         },
@@ -810,40 +802,28 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "case": {
-                      "$ref": "#/components/schemas/Case"
-                    }
+                    "case": { "$ref": "#/components/schemas/Case" }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "description": "Bad request." },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
         }
       }
     },
     "/cases/update": {
       "post": {
-        "tags": [
-          "Cases"
-        ],
+        "tags": ["Cases"],
         "summary": "POST /cases/update",
-        "description": "Update an existing case with new metadata. Use this to rename, add notes, or adjust case-level settings.",
+        "description": "Update an existing case.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCaseBody"
-              }
+              "schema": { "$ref": "#/components/schemas/UpdateCaseBody" }
             }
           }
         },
@@ -855,43 +835,29 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "case": {
-                      "$ref": "#/components/schemas/Case"
-                    }
+                    "case": { "$ref": "#/components/schemas/Case" }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Case not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "description": "Bad request." },
+          "401": { "description": "Unauthorized." },
+          "404": { "description": "Case not found." },
+          "500": { "description": "Internal server error." }
         }
       }
     },
     "/cases/list": {
       "post": {
-        "tags": [
-          "Cases"
-        ],
+        "tags": ["Cases"],
         "summary": "POST /cases/list",
-        "description": "Retrieve a list of all cases for the current tenant. Can be filtered or paginated depending on implementation.",
+        "description": "List cases with optional filters and pagination.",
         "requestBody": {
           "required": false,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ListCasesBody"
-              }
+              "schema": { "$ref": "#/components/schemas/ListCasesBody" }
             }
           }
         },
@@ -905,77 +871,51 @@
                   "properties": {
                     "cases": {
                       "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Case"
-                      }
+                      "items": { "$ref": "#/components/schemas/Case" }
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "description": "Bad request." },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
         }
       }
     },
     "/cases/remove": {
       "post": {
-        "tags": [
-          "Cases"
-        ],
+        "tags": ["Cases"],
         "summary": "POST /cases/remove",
-        "description": "Delete an existing case. This disassociates all files and detections previously attached to it.",
+        "description": "Remove a case by ID.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RemoveCaseBody"
-              }
+              "schema": { "$ref": "#/components/schemas/RemoveCaseBody" }
             }
           }
         },
         "responses": {
-          "204": {
-            "description": "Case removed successfully (no content)."
-          },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Case not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "204": { "description": "Case removed successfully (no content)." },
+          "400": { "description": "Bad request." },
+          "401": { "description": "Unauthorized." },
+          "404": { "description": "Case not found." },
+          "500": { "description": "Internal server error." }
         }
       }
     },
     "/cases/timeline": {
       "post": {
-        "tags": [
-          "Cases"
-        ],
+        "tags": ["Cases"],
         "summary": "POST /cases/timeline",
-        "description": "Fetch the timeline of a case. Timelines provide a chronological view of all file uploads, detections, and redactions associated with a case.",
+        "description": "Get the timeline of events for a specific case.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TimelineBody"
-              }
+              "schema": { "$ref": "#/components/schemas/TimelineBody" }
             }
           }
         },
@@ -989,33 +929,19 @@
                   "properties": {
                     "events": {
                       "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/CaseEvent"
-                      }
+                      "items": { "$ref": "#/components/schemas/CaseEvent" }
                     },
-                    "hasMore": {
-                      "type": "boolean"
-                    },
-                    "nextOffset": {
-                      "type": "integer"
-                    }
+                    "hasMore": { "type": "boolean" },
+                    "nextOffset": { "type": "integer" }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Case not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "description": "Bad request." },
+          "401": { "description": "Unauthorized." },
+          "404": { "description": "Case not found." },
+          "500": { "description": "Internal server error." }
         }
       }
     },
@@ -1534,7 +1460,7 @@
           "Login"
         ],
         "summary": "POST /login",
-        "description": "Authenticate with username/email and password. Returns an access token and refresh token for subsequent API calls.",
+        "description": "Endpoint for login operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1587,7 +1513,7 @@
           "Logout"
         ],
         "summary": "POST /logout",
-        "description": "Logout the current session. Invalidates the provided access token.",
+        "description": "Endpoint for logout operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1640,7 +1566,7 @@
           "Me"
         ],
         "summary": "GET /me",
-        "description": "Retrieve the profile information for the currently authenticated user. Useful for displaying account details in client apps.",
+        "description": "Endpoint for me operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1684,7 +1610,7 @@
           "Refresh"
         ],
         "summary": "POST /refresh",
-        "description": "Refresh an expired access token using a valid refresh token. Prevents the need for the user to log in again.",
+        "description": "Endpoint for refresh operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1737,7 +1663,7 @@
           "Register"
         ],
         "summary": "POST /register",
-        "description": "Register a new user account. Typically requires name, email, and password. May also include organization details.",
+        "description": "Endpoint for register operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -2134,7 +2060,7 @@
           "Search"
         ],
         "summary": "GET /search/semantic",
-        "description": "Perform a hybrid semantic + keyword search across uploaded files. This endpoint allows you to query text extracted from video transcripts, audio transcriptions, and documents. It blends semantic embeddings with BM25 keyword scoring to return results that are both contextually relevant and textually precise. You can optionally restrict results by case, file, or date range. Ideal for investigations, discovery, and compliance queries.",
+        "description": "Endpoint for search operations.",
         "parameters": [],
         "responses": {
           "200": {
@@ -2176,7 +2102,7 @@
           "Search"
         ],
         "summary": "Hybrid search across uploaded content",
-        "description": "Perform a hybrid semantic + keyword search across uploaded files. This endpoint allows you to query text extracted from video transcripts, audio transcriptions, and documents. It blends semantic embeddings with BM25 keyword scoring to return results that are both contextually relevant and textually precise. You can optionally restrict results by case, file, or date range. Ideal for investigations, discovery, and compliance queries.",
+        "description": "Perform hybrid semantic + keyword search across uploaded files. Supports case/file/date filters.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2220,7 +2146,7 @@
           "Uploads"
         ],
         "summary": "Start an upload session",
-        "description": "Initialize a new file upload session. This request prepares the backend and generates a pre-signed URL for S3 storage. Depending on file size, the upload may be single PUT or multipart (requiring UploadId). Use this endpoint as the first step when uploading files for indexing and redaction.",
+        "description": "Start an S3 upload session. Returns pre-signed URL for single PUT or UploadId for multipart.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2308,8 +2234,7 @@
               }
             }
           }
-        },
-        "description": "Generate a signed URL for uploading a specific chunk of a file in a multipart upload session. Requires the file's storage key, UploadId, and the part number. This endpoint is typically called repeatedly until all file chunks are uploaded."
+        }
       }
     },
     "/upload/complete": {
@@ -2318,7 +2243,7 @@
           "Uploads"
         ],
         "summary": "Complete an upload",
-        "description": "Finalize an upload session. Once all file parts are uploaded, call this endpoint to persist the file record, optionally associate it with a case, and enqueue parsing/embedding jobs. This step ensures the uploaded file is fully indexed and ready for search/redaction workflows.",
+        "description": "Finalize upload, persist File row, optionally link to a case, enqueue parsing/embedding.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2433,8 +2358,7 @@
               }
             }
           }
-        },
-        "description": "List files currently stored in the system. Supports filters for status, caseId, and free-text search. You can also control pagination with limit and offset. Useful for browsing or building dashboards of uploaded files."
+        }
       }
     },
     "/files/{id}": {
@@ -2443,7 +2367,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2513,7 +2437,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/signed-url",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2583,7 +2507,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/redact",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2653,7 +2577,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/redactions",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2723,7 +2647,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/redactions/finalize",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2793,7 +2717,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/redaction/status",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2863,7 +2787,7 @@
           "Files"
         ],
         "summary": "GET /files/{id}/redaction/signed-url",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
+        "description": "Endpoint for files operations.",
         "parameters": [
           {
             "name": "id",
@@ -2933,7 +2857,7 @@
           "Detections"
         ],
         "summary": "GET /video-detections",
-        "description": "List all video detection jobs for the current tenant. Supports pagination. Useful for monitoring all past and ongoing detection runs.",
+        "description": "Endpoint for detections operations.",
         "parameters": [
           {
             "name": "limit",
@@ -3067,7 +2991,7 @@
           "Detections"
         ],
         "summary": "GET /video-detections/{id}",
-        "description": "Retrieve the details of a single video detection run by its ID. Includes metadata, status, and detection results.",
+        "description": "Endpoint for detections operations.",
         "parameters": [
           {
             "name": "id",
