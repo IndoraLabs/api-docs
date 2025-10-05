@@ -2334,7 +2334,7 @@
         }
       }
     },
-    "/files/{id}/redact": {
+    "/files/{id}/redaction": {
       "get": {
         "tags": [
           "Files"

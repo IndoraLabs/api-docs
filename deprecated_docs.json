@@ -30,15 +30,16 @@
           {
             "group": "Search",
             "pages": [
-              "api-reference/endpoints/post_search_semantic"
+              "api-reference/endpoints/post_search_semantic",
+              "api-reference/endpoints/get_search_semantic"
             ]
           },
           {
             "group": "Upload",
             "pages": [
               "api-reference/endpoints/post_upload_init",
-              "api-reference/endpoints/post_upload_complete",
-              "api-reference/endpoints/get_upload_sign-part"
+              "api-reference/endpoints/get_upload_sign-part",
+              "api-reference/endpoints/post_upload_complete"
             ]
           },
           {
@@ -53,19 +54,44 @@
             ]
           },
           {
-            "group": "Auto Redactions",
+            "group": "Redaction Flags (Boxes)",
+            "pages": [
+              "api-reference/endpoints/post_:id_flags",
+              "api-reference/endpoints/patch_flags_:flagId",
+              "api-reference/endpoints/delete_flags_:flagId"
+            ]
+          },
+          {
+            "group": "Redactions",
             "pages": [
               "api-reference/endpoints/post_:id_redact",
               "api-reference/endpoints/get_files_id_redaction_status",
-              "api-reference/endpoints/get_files_id_redaction_signed-url"
+              "api-reference/endpoints/get_files_id_redaction_signed-url",
+              "api-reference/endpoints/get_files_id_redactions",
+              "api-reference/endpoints/patch_:id_redactions",
+              "api-reference/endpoints/post_:id_redactions_finalize"
             ]
           },
           {
             "group": "Video Detections",
             "pages": [
+              "api-reference/endpoints/get_video-detections",
+              "api-reference/endpoints/get_video-detections_id",
               "api-reference/endpoints/patch_video-detections_id",
               "api-reference/endpoints/delete_video-detections_id",
+              "api-reference/endpoints/get_video-detections_file_id",
               "api-reference/endpoints/get_video-detections_file_id_detections"
+            ]
+          },
+          {
+            "group": "Cases",
+            "pages": [
+              "api-reference/endpoints/get_cases_:caseId",
+              "api-reference/endpoints/post_list",
+              "api-reference/endpoints/post_create",
+              "api-reference/endpoints/post_update",
+              "api-reference/endpoints/post_remove",
+              "api-reference/endpoints/post_timeline"
             ]
           }
         ]

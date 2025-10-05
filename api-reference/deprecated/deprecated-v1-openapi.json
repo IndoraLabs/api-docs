@@ -500,7 +500,7 @@
       "RedactRequest": {
         "type": "object",
         "properties": {
-          "targets": { "type": "string" },
+          "targets": { "type": "array", "items": { "type": "string" } },
           "sampleFps": { "type": "integer" }
         }
       },
