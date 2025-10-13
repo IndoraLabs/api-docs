@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://swarmoperative.ngrok.app"
+      "url": "https://api.indoralabs.com"
     }
   ],
   "security": [
