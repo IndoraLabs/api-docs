@@ -14,7 +14,8 @@
           "method": "key",
           "name": "x-api-key"
         }
-      }
+      },
+      "openapi": "api-reference/openapi.json"
   },
   "navigation": {
     "tabs": [

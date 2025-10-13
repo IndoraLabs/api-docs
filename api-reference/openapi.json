@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://api.indoralabs.com"
+      "url": "https://swarmoperative.ngrok.app"
     }
   ],
   "security": [
@@ -2361,6 +2361,7 @@
         }
       }
     },
+
     "/files": {
       "get": {
         "tags": [
@@ -2505,6 +2506,76 @@
             "description": "Internal server error."
           }
         }
+      },
+      "patch": {
+        "tags": ["Files"],
+        "summary": "PATCH /files/{id}",
+        "description": "Update metadata for a file by its ID. This endpoint allows changing review status, tags, department, relevancy score, and file-specific metrics like page count or duration. Commonly used after review or processing is complete.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The unique file ID to update."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reviewStatus": {
+                    "type": "string",
+                    "enum": ["pending", "relevant", "irrelevant", "redacted"],
+                    "description": "Current review state of the file."
+                  },
+                  "department": {
+                    "type": "string",
+                    "description": "Department responsible for the file."
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of tags or keywords assigned to the file."
+                  },
+                  "relevancyScore": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Numeric score indicating relevancy confidence."
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Total number of pages (if applicable)."
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Total duration in seconds for media files."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Files" }
+              }
+            }
+          },
+          "400": { "description": "Invalid input payload." },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "File not found." },
+          "500": { "description": "Internal server error." }
+        }
       }
     },
     "/files/{id}/signed-url": {
@@ -2574,6 +2645,93 @@
           "500": {
             "description": "Internal server error."
           }
+        }
+      }
+    },
+    "/files/{id}/redact": {
+      "post": {
+        "tags": ["Files"],
+        "summary": "POST /files/{id}/redact",
+        "description": "Start a redaction job for the specified file. This endpoint launches an asynchronous redaction process across supported file types (video, audio, image, or text). The response includes a job ID and S3 output location where the redacted file will eventually appear. Clients can poll the redaction status endpoint to track progress.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The unique file ID to redact."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "targets": {
+                    "type": "string",
+                    "description": "Comma-separated list of redaction targets (e.g. `faces,plates,pii`)."
+                  },
+                  "sampleFps": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30,
+                    "description": "Optional frame sampling rate for video redaction. Controls processing speed vs. accuracy."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Redaction job accepted and queued for processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Indicates that the request was successfully queued."
+                    },
+                    "jobId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Unique identifier for the redaction job."
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending"],
+                      "description": "Initial job status."
+                    },
+                    "outputS3Uri": {
+                      "type": "string",
+                      "description": "S3 URI where the redacted output will be written once processing completes."
+                    },
+                    "detectedType": {
+                      "type": "string",
+                      "enum": ["video", "audio", "image", "text"],
+                      "description": "Detected file media type that determined which redaction pipeline to run."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request payload or unsupported parameters.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "File not found or original S3 path unavailable." },
+          "500": { "description": "Internal server error while enqueueing job." }
         }
       }
     },
@@ -2927,136 +3085,225 @@
         }
       }
     },
-    "/video-detections": {
-      "get": {
-        "tags": [
-          "Detections"
-        ],
-        "summary": "GET /video-detections",
-        "description": "List all video detection jobs for the current tenant. Supports pagination. Useful for monitoring all past and ongoing detection runs.",
+    "/files/attach": {
+      "post": {
+        "tags": ["Files"],
+        "summary": "POST /files/attach",
+        "description": "Attach one or more files to a case. This creates a link between existing files and a specific case, enabling contextual review, redaction, or reporting. Requires authentication and org scope.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caseId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The case ID to attach files to."
+                  },
+                  "fileIds": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "List of file IDs to attach."
+                  }
+                },
+                "required": ["caseId", "fileIds"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Files successfully attached to case.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid payload or missing fields." },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "One or more file IDs not found." },
+          "500": { "description": "Internal server error." }
+        }
+      }
+    },
+    "/files/detach": {
+      "post": {
+        "tags": ["Files"],
+        "summary": "POST /files/detach",
+        "description": "Detach one or more files from a case. This removes their association while keeping the file intact. Useful when a file was mistakenly linked or no longer relevant to the case.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caseId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The case ID to detach files from."
+                  },
+                  "fileIds": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "List of file IDs to detach."
+                  }
+                },
+                "required": ["caseId", "fileIds"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Files successfully detached from case.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid payload or missing fields." },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "One or more file IDs not found." },
+          "500": { "description": "Internal server error." }
+        }
+      }
+    },
+
+
+    "/video-detections/file/{id}": {
+    "get": {
+        "tags": ["Detections"],
+        "summary": "GET /video-detections/file/{id}",
+        "description": "Retrieve all video detection runs associated with a specific **file**. Each detection run corresponds to one processing job executed against that file (for example, a video redaction pass that looked for faces or license plates). This endpoint returns the raw detection run records exactly as stored, including the per-run `detections` array (which may be empty `[]` until a worker populates results) and the creation timestamp. Use this endpoint to: (1) list historical detection/redaction attempts for a file; (2) render overlays from the saved `detections` array; (3) debug or audit processing for a single file.\n\n**Notes:**\n- This route returns **all** runs for the file (no server-side pagination in the current implementation).\n- Field names mirror the database table: `id`, `tenant_id`, `file_id`, `case_id`, `doc_id`, `detections`, `created_at`.\n- `case_id` can be `null` when a detection run is not linked to a case.\n- `detections` is a JSON array (serialized), typically an array of objects describing entities per time/frame. Its shape is application-defined and may evolve without breaking this contract.",
         "parameters": [
           {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200
-            },
-            "description": "Max items to return. Default 50."
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Offset for pagination. Default 0."
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The unique **File ID** whose detection runs you want to list."
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful response.",
+            "description": "Successfully retrieved all detection runs tied to the specified file. The response includes the raw detection run records as stored in the system.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VideoDetections"
+                  "type": "object",
+                  "properties": {
+                    "detections": {
+                      "type": "array",
+                      "description": "Array of detection run records for the provided file.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Unique ID of this detection run."
+                          },
+                          "tenant_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Tenant/organization ID that owns the file and detection run."
+                          },
+                          "file_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "The File ID this detection run was executed against."
+                          },
+                          "case_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "nullable": true,
+                            "description": "Optional Case ID linked to this detection run. `null` if not associated."
+                          },
+                          "doc_id": {
+                            "type": "string",
+                            "description": "Document/session identifier provided by the client or upstream workflow that initiated the run."
+                          },
+                          "detections": {
+                            "type": "array",
+                            "items": { "type": "object", "additionalProperties": true },
+                            "description": "Per-run detections array. The structure of each item is application-defined (e.g., { frame, ts, label, bbox, confidence }). May be empty `[]` until populated by workers."
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Timestamp when this detection run was created (ISO 8601)."
+                          }
+                        },
+                        "required": ["id", "tenant_id", "file_id", "doc_id", "detections", "created_at"]
+                      }
+                    }
+                  },
+                  "required": ["detections"]
+                },
+                "examples": {
+                  "example": {
+                    "summary": "Example response with two detection runs",
+                    "value": {
+                      "detections": [
+                        {
+                          "id": "c85a3d71-fec9-44b7-9f25-930da5f04c27",
+                          "tenant_id": "743db90f-7e76-49f7-8d4e-5f42a16efc06",
+                          "file_id": "de13d372-a870-4eea-b975-9060d442f38c",
+                          "case_id": null,
+                          "doc_id": "session-xyz",
+                          "detections": [],
+                          "created_at": "2025-09-07T13:48:43.927-05:00"
+                        },
+                        {
+                          "id": "37c1c024-2ecf-4926-b1b3-1e4ed445f3b2",
+                          "tenant_id": "743db90f-7e76-49f7-8d4e-5f42a16efc06",
+                          "file_id": "de13d372-a870-4eea-b975-9060d442f38c",
+                          "case_id": null,
+                          "doc_id": "session-xyz",
+                          "detections": [
+                            {
+                              "frame": 123,
+                              "ts": 4.10,
+                              "label": "Face",
+                              "confidence": 0.94,
+                              "bbox": { "x": 512, "y": 208, "w": 128, "h": 128 }
+                            }
+                          ],
+                          "created_at": "2025-10-13T03:12:00.000-05:00"
+                        }
+                      ]
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Bad request. The provided `id` is missing or not a valid UUID."
           },
           "401": {
-            "description": "Unauthorized (missing or invalid token)."
+            "description": "Unauthorized. Authentication failed or token is missing/expired."
           },
           "404": {
-            "description": "Not found."
+            "description": "No detection runs exist for the specified file, or the file does not exist."
           },
           "500": {
-            "description": "Internal server error."
-          }
-        }
-      }
-    },
-    "/video-detections/file/{id}": {
-      "get": {
-        "tags": [
-          "Detections"
-        ],
-        "summary": "GET /video-detections/file/{id}",
-        "description": "Endpoint for detections operations.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Path parameter `id`."
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200
-            },
-            "description": "Max items to return. Default 50."
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Offset for pagination. Default 0."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VideoDetections"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized (missing or invalid token)."
-          },
-          "404": {
-            "description": "Not found."
-          },
-          "500": {
-            "description": "Internal server error."
+            "description": "Internal server error while retrieving detections."
           }
         }
       }
@@ -3129,6 +3376,119 @@
             "description": "Internal server error."
           }
         }
+      },
+      "patch": {
+        "tags": ["Detections"],
+        "summary": "PATCH /video-detections/{id}",
+        "description": "Update an existing video detection record by its unique ID. This endpoint allows modifying detection data or reassigning the detection run to a different case. Commonly used when post-processing detections, adding new results, or associating an existing detection job with a case for organizational purposes. All updates are applied atomically.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The unique ID of the video detection run to update."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "detections": {
+                    "type": "array",
+                    "items": { "type": "object" },
+                    "description": "An optional array of detection objects, representing new or updated detection data. Each detection entry may include bounding boxes, timestamps, labels, or confidence scores. If provided, this array replaces the existing detections for the specified run."
+                  },
+                  "caseId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true,
+                    "description": "An optional Case ID to link this detection run to. Use `null` to clear any existing case association."
+                  }
+                },
+                "description": "Fields to update on the specified video detection record. At least one property must be present."
+              },
+              "examples": {
+                "updateDetections": {
+                  "summary": "Example: Replace detection array",
+                  "value": {
+                    "detections": [
+                      { "frame": 123, "label": "Face", "confidence": 0.92 },
+                      { "frame": 140, "label": "LicensePlate", "confidence": 0.85 }
+                    ]
+                  }
+                },
+                "assignCase": {
+                  "summary": "Example: Assign detection to a case",
+                  "value": {
+                    "caseId": "b37f2a74-99a1-4a61-8cfb-973344dfcf21"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Detection record successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detection": {
+                      "$ref": "#/components/schemas/VideoDetections"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed payload.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "Detection record not found." },
+          "500": { "description": "Internal server error while updating detection record." }
+        }
+      },
+      "delete": {
+        "tags": ["Detections"],
+        "summary": "DELETE /video-detections/{id}",
+        "description": "Delete a specific video detection record by its unique ID. This operation permanently removes the detection metadata from the system but does not affect the original video file or its associated redacted output. Typically used for cleaning up outdated or erroneous detection runs.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The unique ID of the detection record to delete."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Detection record successfully deleted. No content returned."
+          },
+          "400": {
+            "description": "Bad request (malformed ID or missing parameter).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "Detection record not found." },
+          "500": { "description": "Internal server error during deletion." }
+        }
       }
     },
     "/video-detections/file/{id}/detections": {
@@ -3200,7 +3560,111 @@
           }
         }
       }
+    },
+    "/video-detections": {
+      "post": {
+        "tags": ["Detections"],
+        "summary": "POST /video-detections",
+        "description": "Start a new video redaction or detection job. This endpoint triggers an asynchronous video processing task that performs entity detection and optional redaction on the specified file. A job ID is returned immediately, which can be used to monitor progress or retrieve the resulting video. The request enqueues a message to the SQS worker pipeline.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Unique ID of the file to process. Must correspond to an existing uploaded video file."
+                  },
+                  "caseId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true,
+                    "description": "Optional case ID to associate this detection run with."
+                  },
+                  "docId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Document or session identifier from the frontend or parent workflow."
+                  },
+                  "detections": {
+                    "type": "array",
+                    "items": { "type": "object" },
+                    "description": "Optional array of detections provided by a prior step or for pre-population. Typically empty when launching a new detection."
+                  },
+                  "detectEntities": {
+                    "type": "array",
+                    "items": { "type": "object" },
+                    "description": "Optional structured entity definitions for detection. Used when specifying custom or pre-trained detection categories."
+                  }
+                },
+                "required": ["docId"]
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Example request",
+                  "value": {
+                    "fileId": "6c61a022-d2b8-4c32-a6a2-9af9c977f237",
+                    "docId": "session-xyz",
+                    "detectEntities": [
+                      { "type": "Face", "confidenceThreshold": 0.8 },
+                      { "type": "LicensePlate" }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Detection job accepted and queued for processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detection": {
+                      "type": "array",
+                      "description": "Empty placeholder for detection results (populated when the job completes).",
+                      "items": { "type": "object" }
+                    },
+                    "jobId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Unique ID of the background job created for this request."
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending"],
+                      "description": "Initial job state. Will change as processing continues."
+                    },
+                    "outputS3Uri": {
+                      "type": "string",
+                      "description": "S3 URI where the processed or redacted video will be written once complete."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or missing required fields.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized (missing or invalid token)." },
+          "404": { "description": "File not found or missing original path." },
+          "500": { "description": "Internal server error during job creation or queue submission." }
+        }
+      }
     }
+
   },
   "components": {
     "schemas": {
