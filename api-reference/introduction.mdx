@@ -8,23 +8,25 @@ description: "Indora Labs API – The Programmable Compliance Refinery"
   control, and sanitize **video, audio, text, and images across 240+ file types** — with policy-backed audit logs, chain of custody, and JSON overlays you can trust in court.
 </Note>
 
-## Welcome
+**Welcome**
 
-The **Indora Labs API** isn’t just a redaction tool.  
+**Indora Labs API** is a programmable compliance refinery — one API that makes raw video · audio · text · images safe, searchable, exportable, with policy-backed audit logs and JSON overlays you can defend.
 
-It’s the **compliance layer your stack has been missing** — one API that makes raw data safe, searchable, and exportable.  
+**Define policy your way**
 
-Define compliance in plain English:  
-*“Blur all officer faces,” “black out tattoos,” “remove minors’ names,” “strip PHI from transcripts.”*  
+**① Natural language** → rules — “Blur all officer faces after 3:00”, “Black out tattoos”, “Remove minors’ names”, “Strip PHI from transcripts.”<br />
+**② Upload your policy docs** → rules — drop in SOPs or legal PDFs; Indora converts them into reviewable, versioned, toggleable rules you control.
 
-**OR**
+**Why teams use Indora**
 
-Define compliance by simply uploading policy docs:  
-*Simply upload any documentation and our compliance engine will turn them into rules that must be strictly follow. You view these created rules, add new ones, edit them, or simply toggle certain ones.*  
+Policy-driven — explicit, auditable rules (not opaque model magic).
+Multi-modal — one surface for video/audio/text/images across 240+ file types.
+Court-ready — chain of custody + explainable overlays for every decision.
 
-Unlike brittle regex rules or generic vision APIs, Indora is policy-driven, multi-modal, auditable, and fast. 
 
-Video processes at ~10s per minute, while text and audio run near real-time.  
+**Flow at a glance**
+
+File in → apply policy → job queued → status → signed URL + redacted asset ＋ overlay JSON.
 
 ---
 
@@ -32,32 +34,32 @@ Video processes at ~10s per minute, while text and audio run near real-time.
 
 <CardGroup cols={2}>
 
-<Card title="Index Anything" icon="database" href="/api-reference/endpoints/post_upload_init">
+<Card title="Index Anything" icon="database">
   Normalize and extract content from **240+ file types** — PDFs, DOCs, CAD, images, audio, and video.  
   Get structured JSON and embeddings for downstream search or AI pipelines.
 </Card>
 
-<Card title="Search Everything" icon="magnifying-glass" href="/api-reference/endpoints/post_search_semantic">
+<Card title="Search Everything" icon="magnifying-glass">
   Run **hybrid semantic + keyword queries** across your entire dataset.  
   Works seamlessly across documents, transcripts, and media files.
 </Card>
 
-<Card title="Policy-Driven Sanitization" icon="shield-check" href="/api-reference/sanitization">
+<Card title="Policy-Driven Sanitization" icon="shield-check">
   Apply natural-language or custom policies.  
   Output both sanitized files and structured JSON overlays for integration into your workflows.
 </Card>
 
-<Card title="Audit & Chain of Custody" icon="scroll" href="/api-reference/audit">
+<Card title="Audit & Chain of Custody" icon="scroll">
   Every action is logged: who viewed what, when, and under which policy.  
   Export audit logs and custody trails directly into your system.
 </Card>
 
-<Card title="Access Control" icon="key" href="/api-reference/access">
+<Card title="Access Control" icon="key">
   Restrict which users can view or export which files.  
   Enforce role-based permissions programmatically through the API.
 </Card>
 
-<Card title="Fast & Scalable" icon="gauge" href="/api-reference/performance">
+<Card title="Fast & Scalable" icon="gauge">
   Handle bulk video, audio, and document processing without bottlenecks.  
   Built for GovCloud, healthcare, and other high-compliance workloads.
 </Card>
