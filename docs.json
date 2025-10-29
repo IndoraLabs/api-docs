@@ -25,7 +25,8 @@
           {
             "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/pricing"
             ]
           },
           {
@@ -120,7 +121,7 @@
     "socials": {
       "x": "https://x.com/indoralabs",
       "github": "https://github.com/indoralabs",
-      "linkedin": "https://linkedin.com/company/indoralabs"
+      "linkedin": "https://linkedin.com/company/indora-labs"
     }
   }
 }
