@@ -26,7 +26,8 @@
             "group": "Overview",
             "pages": [
               "api-reference/introduction",
-              "api-reference/pricing"
+              "api-reference/pricing",
+               "api-reference/quickstart"
             ]
           },
           {

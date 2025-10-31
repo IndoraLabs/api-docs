@@ -1,0 +1,143 @@
+---
+title: "Quick Start"
+description: "Integrate Indora Labs API in under 5 minutes"
+---
+
+<Note>
+The **Indora Labs API** lets you upload, index, and automatically redact sensitive data in video, audio, text, and images — all in one unified flow.
+</Note>
+
+## 🚀 Quick Start (TypeScript Example)
+
+Below is a minimal TypeScript example showing the full lifecycle — from uploading a file to receiving a redacted version.
+
+```tsx
+import { useState } from "react";
+
+/**
+ * Quick Start Example
+ * Upload → Index → Redact → Retrieve
+ */
+export default function QuickStart() {
+  const [status, setStatus] = useState<string>("Idle");
+  const [redactedUrl, setRedactedUrl] = useState<string>("");
+
+  const handleUpload = async (file: File) => {
+    try {
+      setStatus("Initializing upload...");
+
+      // 1️⃣ Initialize upload
+      const initRes = await fetch("https://api.indoralabs.com/upload/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        }),
+      });
+      const init = await initRes.json();
+
+      // 2️⃣ Upload directly to S3
+      await fetch(init.putUrl, { method: "PUT", body: file });
+
+      // 3️⃣ Complete upload
+      const completeRes = await fetch("https://api.indoralabs.com/upload/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uploadId: init.uploadId,
+          key: init.key,
+        }),
+      });
+      const complete = await completeRes.json();
+      const fileId = complete.file?.id;
+
+      setStatus("Launching redaction...");
+
+      // 4️⃣ Launch redaction
+      const redactRes = await fetch(`https://api.indoralabs.com/files/${fileId}/redact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targets: ["juvenile faces", "HIPAA identifiers", "license plates"],
+        }),
+      });
+      const job = await redactRes.json();
+
+      // 5️⃣ Poll for completion
+      let statusCheck = "pending";
+      let outputUrl = "";
+      while (statusCheck !== "succeeded") {
+        const statusRes = await fetch(
+          `https://api.indoralabs.com/files/${fileId}/redaction/status`
+        );
+        const statusData = await statusRes.json();
+        statusCheck = statusData.status;
+        setStatus(`Redaction status: ${statusCheck}`);
+        if (statusCheck === "succeeded") {
+          outputUrl = statusData.outputS3Uri;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+
+      // 6️⃣ Get signed download link
+      const signedRes = await fetch(
+        `https://api.indoralabs.com/files/${fileId}/redaction/signed-url`
+      );
+      const signed = await signedRes.json();
+
+      setRedactedUrl(signed.url);
+      setStatus("✅ Redaction complete!");
+    } catch (err: any) {
+      setStatus(`❌ Error: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="p-4 border rounded-lg max-w-lg">
+      <h2 className="text-lg font-bold mb-2">Indora Labs Redaction Quickstart</h2>
+
+      <input
+        type="file"
+        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+        className="mb-3"
+      />
+
+      <p className="text-sm text-gray-700 mb-2">{status}</p>
+
+      {redactedUrl && (
+        <video controls width="400" src={redactedUrl}>
+          Your browser does not support video playback.
+        </video>
+      )}
+    </div>
+  );
+}
+
+```
+
+## 💡 How It Works
+
+| Step | Description |
+|------|--------------|
+| **1️⃣ Upload** | Calls `/upload/init` and uploads the file directly to S3. |
+| **2️⃣ Auto Index** | After completion, Indora automatically indexes your content for semantic search. |
+| **3️⃣ Redact** | Calls `/files/{id}/redact` with natural-language `targets`. |
+| **4️⃣ Poll** | Uses `/files/{id}/redaction/status` until the job completes. |
+| **5️⃣ Retrieve** | Fetches a signed URL from `/files/{id}/redaction/signed-url`. |
+
+---
+
+## 🧠 Tip: Using Natural Language Targets
+
+Targets can be written in **plain English** — no model labels required.
+
+```json
+["juveniles", "faces", "license plates", "names", "HIPAA identifiers"]
+```
+The redaction engine automatically maps these targets to the right detection models for each modality — video, audio, text, or image.
+
+
+<Info> ✅ In ~30 lines, you’ve built an end-to-end redaction workflow — from raw upload to sanitized, compliant output. </Info> 
