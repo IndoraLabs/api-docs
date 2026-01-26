@@ -45,6 +45,9 @@
     },
     {
       "name": "Embeddings"
+    },
+    {
+      "name": "Policy"
     }
   ],
   "paths": {
@@ -2220,7 +2223,7 @@
           "Uploads"
         ],
         "summary": "Start an upload session",
-        "description": "Initialize a new file upload session. This request prepares the backend and generates a pre-signed URL for S3 storage. Depending on file size, the upload may be single PUT or multipart (requiring UploadId). Use this endpoint as the first step when uploading files for indexing and redaction.",
+        "description": "Initialize a new file upload session. This request prepares the backend and generates a pre-signed URL for S3 storage. Depending on file size, the upload may use a single PUT or a multipart upload (requiring an UploadId). Files can be uploaded in different ingestion modes: standard files (default) or policy documents. Policy uploads are treated as compliance source documents and may later be used to derive redaction or detection rules. If no ingestion mode is provided, the upload defaults to standard file ingestion.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2652,7 +2655,7 @@
       "post": {
         "tags": ["Files"],
         "summary": "POST /files/{id}/redact",
-        "description": "Start a redaction job for the specified file. This endpoint launches an asynchronous redaction process across supported file types (video, audio, image, or text). The response includes a job ID and S3 output location where the redacted file will eventually appear. Clients can poll the redaction status endpoint to track progress.",
+        "description": "Start a redaction job for the specified file. This endpoint launches an asynchronous redaction process across supported file types (video, audio, image, or text). The response includes a job ID and S3 output location where the redacted file will eventually appear. Clients can poll the redaction status endpoint to track progress. This endpoint supports both manual and policy-based redaction.When policyIds are provided, the system extracts redaction rules from the referenced policy documents and combines them with any manual targets.",
         "parameters": [
           {
             "name": "id",
@@ -2670,8 +2673,14 @@
                 "type": "object",
                 "properties": {
                   "targets": {
-                    "type": "string",
-                    "description": "Comma-separated list of redaction targets (e.g. `faces,plates,pii`)."
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of redaction targets (e.g. ['Names', 'Addresses', 'Exclude police department contact info'])."
+                  },
+                  "policyIds": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Optional list of policy doc IDs to follow and dictate what are targets."
                   },
                   "sampleFps": {
                     "type": "integer",
@@ -3184,6 +3193,205 @@
       }
     },
 
+    "/files/policies": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "List policy documents",
+        "description": "Retrieve files that were ingested as policy documents. These files are used to derive redaction rules and are not attached to cases.",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Optional name search."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 200 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Policy file list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Files" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/policies/{policyId}/rules": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "List policy rules",
+        "description": "Retrieve all immutable compliance rules derived from a policy document.",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Policy document ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Policy rules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PolicyRule"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Policy not found" },
+          "500": { "description": "Internal server error" }
+        }
+      },
+      "post": {
+        "tags": ["Policies"],
+        "summary": "Create policy rule",
+        "description": "Manually create a compliance rule for a policy document. Rules are immutable; updates require delete + recreate.",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePolicyRuleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rule created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rule": {
+                      "$ref": "#/components/schemas/PolicyRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid request payload" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Policy not found" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/policies/{policyId}/rules/{ruleId}": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "Get policy rule",
+        "description": "Retrieve a single policy rule by ID.",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "ruleId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Policy rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rule": {
+                      "$ref": "#/components/schemas/PolicyRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Rule not found" },
+          "500": { "description": "Internal server error" }
+        }
+      },
+      "delete": {
+        "tags": ["Policies"],
+        "summary": "Delete policy rule",
+        "description": "Delete a policy rule. This operation is irreversible.",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "ruleId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Rule deleted"
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Rule not found" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
 
     "/video-detections/file/{id}": {
     "get": {
@@ -4193,6 +4401,12 @@
             "type": "string",
             "example": "parsed/743db90f-7e76-49f7-8d4e-5f42a16efc06/Zm9pYS1kZXYtYW5kcm9tZWRhLzc0M2RiOTBmLTdlNzYtNDlmNy04ZDRlLTVmNDJhMTZlZmMwNi9yYXcvMmUxZjE5NzUtNDBjYy00YmY1LThmNzctN2VjYTkwMjhmMjFjL0Rpc3BhdGNoIEMyMy0wMTE1OC5wZGY.json",
             "description": "s3_key_parsed field from files09192347."
+          },
+          "ingestion_mode": {
+            "type": "string",
+            "enum": ["default", "policy"],
+            "example": "policy",
+            "description": "Indicates how the file was ingested. `policy` files are policy documents used to drive redaction rules."
           }
         },
         "additionalProperties": false,
@@ -4293,7 +4507,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Schema inferred from uploads dataset.",
+        "description": "Upload a file. If the file represents a redaction policy document, it will be ingested with `ingestion_mode=policy` and later used to derive redaction rules.",
         "example": {
           "id": "44837786-5350-48d8-b4b1-b406b7c40135",
           "tenant_id": "743db90f-7e76-49f7-8d4e-5f42a16efc06",
@@ -4490,9 +4704,7 @@
       "UploadInitRequest": {
         "type": "object",
         "required": [
-          "filename",
-          "contentType",
-          "sizeBytes"
+          "filename"
         ],
         "properties": {
           "filename": {
@@ -4501,17 +4713,24 @@
           },
           "contentType": {
             "type": "string",
-            "description": "MIME type of the file (e.g., application/pdf)."
+            "description": "MIME type of the file (e.g., application/pdf). Optional; inferred if omitted."
           },
           "sizeBytes": {
             "type": "integer",
-            "description": "Total file size in bytes."
+            "description": "Total file size in bytes. Used to determine single vs multipart upload."
+          },
+          "ingestionMode": {
+            "type": "string",
+            "enum": ["default", "policy"],
+            "default": "default",
+            "description": "Controls how the uploaded file is ingested. Use `policy` when uploading a policy document that will generate compliance rules."
           }
         },
         "example": {
-          "filename": "report.pdf",
+          "filename": "use-of-force-policy.pdf",
           "contentType": "application/pdf",
-          "sizeBytes": 1048576
+          "sizeBytes": 1048576,
+          "ingestionMode": "policy"
         }
       },
       "UploadInitResponse": {
@@ -4604,7 +4823,136 @@
             }
           ]
         }
+      },
+      "PolicyRedactionRequest": {
+        "type": "object",
+        "properties": {
+          "policyIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "One or more policy document file IDs whose extracted rules should be applied during redaction."
+          },
+          "manualTargets": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional manual targets to combine with policy-derived rules."
+          },
+          "sampleFps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "description": "Optional frame sampling rate for video redaction."
+          }
+        },
+        "required": ["policyIds"],
+        "example": {
+          "policyIds": [
+            "f1c8e8b0-7a1b-4f34-9b5b-0d99a3c9b77d"
+          ],
+          "sampleFps": 5
+        }
+      },
+      "PolicyRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "b87e2a3c-6ef9-4f9b-8e1b-9f9c2c1eab23",
+            "description": "Unique identifier for the policy rule."
+          },
+          "doc_id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "f1c8e8b0-7a1b-4f34-9b5b-0d99a3c9b77d",
+            "description": "Policy document ID this rule belongs to."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["REDACT", "DETECT", "EXCLUDE"],
+            "example": "REDACT",
+            "description": "Rule behavior."
+          },
+          "target": {
+            "type": "string",
+            "example": "all police contact information",
+            "description": "Normalized target this rule applies to."
+          },
+          "source_text": {
+            "type": "string",
+            "example": "All personal contact information of officers must be redacted",
+            "description": "Exact source text from the policy document that produced this rule."
+          },
+          "source_page": {
+            "type": "integer",
+            "example": 3,
+            "description": "Page number within the policy document where the rule originated."
+          },
+          "offset_start": {
+            "type": "integer",
+            "example": 120,
+            "description": "Character offset where the source text begins."
+          },
+          "offset_end": {
+            "type": "integer",
+            "example": 182,
+            "description": "Character offset where the source text ends."
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-01-22 14:31:09.123 -0600",
+            "description": "Timestamp when the rule was created."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Immutable compliance rule derived from a policy document."
+      },
+      "CreatePolicyRuleRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["REDACT", "DETECT", "EXCLUDE"],
+            "description": "Rule behavior."
+          },
+          "target": {
+            "type": "string",
+            "description": "Target category or phrase this rule applies to."
+          },
+          "sourceText": {
+            "type": "string",
+            "description": "Exact source text from the policy document."
+          },
+          "sourcePage": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Page number in the policy document."
+          },
+          "offsetStart": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Start character offset of the source text."
+          },
+          "offsetEnd": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "End character offset of the source text."
+          }
+        },
+        "required": [
+          "type",
+          "target",
+          "sourceText",
+          "sourcePage",
+          "offsetStart",
+          "offsetEnd"
+        ]
       }
+
+
     },
     "securitySchemes": {
       "apiKeyAuth": {

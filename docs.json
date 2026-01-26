@@ -45,6 +45,16 @@
             ]
           },
           {
+            "group": "Policies",
+            "pages": [
+              "api-reference/endpoints/get_policies",
+              "api-reference/endpoints/get_policy_rules",
+              "api-reference/endpoints/post_policy_rules",
+              "api-reference/endpoints/get_policy_rule",
+              "api-reference/endpoints/delete_policy_rule"
+            ]
+          },
+          {
             "group": "Files",
             "pages": [
               "api-reference/endpoints/get_files",
