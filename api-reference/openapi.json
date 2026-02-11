@@ -3393,6 +3393,225 @@
       }
     },
 
+    "/text-detections": {
+      "get": {
+        "tags": ["Detections"],
+        "summary": "List text redaction jobs",
+        "description": "Retrieve all text redaction jobs for the current tenant. Supports pagination via limit and offset.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "description": "Maximum number of records to return."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Pagination offset."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of text redaction records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redactions": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/TextRedaction" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
+        }
+      },
+      "post": {
+        "tags": ["Detections"],
+        "summary": "Start a text redaction job",
+        "description": "Launch an asynchronous text redaction job for a PDF or text-based document. The job is queued to SQS and processed by an ECS worker. Returns immediately with a job ID.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTextRedactionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Text redaction job accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending"]
+                    },
+                    "outputS3Uri": {
+                      "type": "string",
+                      "description": "S3 URI where the redacted document will be written."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid payload." },
+          "404": { "description": "Original file path not found." },
+          "401": { "description": "Unauthorized." },
+          "500": { "description": "Internal server error." }
+        }
+      }
+    },
+
+    "/text-detections/file/{fileId}": {
+      "get": {
+        "tags": ["Detections"],
+        "summary": "Get text redactions for a file",
+        "description": "Retrieve all text redaction records associated with a specific file.",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Text redaction records for the file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redactions": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/TextRedaction" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized." },
+          "404": { "description": "No redactions found." }
+        }
+      }
+    },
+
+    "/text-detections/{id}": {
+      "get": {
+        "tags": ["Detections"],
+        "summary": "Get a text redaction record",
+        "description": "Retrieve a single text redaction record by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Text redaction record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redaction": {
+                      "$ref": "#/components/schemas/TextRedaction"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Redaction not found." },
+          "401": { "description": "Unauthorized." }
+        }
+      },
+      "delete": {
+        "tags": ["Detections"],
+        "summary": "Delete a text redaction record",
+        "description": "Delete a text redaction metadata record. Does not delete the redacted S3 file.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Deleted successfully." },
+          "404": { "description": "Redaction not found." },
+          "401": { "description": "Unauthorized." }
+        }
+      }
+    },
+
+    "/text-detections/job/{fileId}": {
+      "get": {
+        "tags": ["Detections"],
+        "summary": "Get latest text redaction job status",
+        "description": "Retrieve the most recent redaction job for a file.",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest file job record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "$ref": "#/components/schemas/FileJob"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Job not found." },
+          "401": { "description": "Unauthorized." }
+        }
+      }
+    },
+
+
     "/video-detections/file/{id}": {
     "get": {
         "tags": ["Detections"],
@@ -4434,6 +4653,41 @@
           "s3_key_parsed": null
         }
       },
+      "FileJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orgId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "example": "redact"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed"]
+          },
+          "outputBucket": {
+            "type": "string"
+          },
+          "outputKey": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Uploads": {
         "type": "object",
         "properties": {
@@ -4950,8 +5204,69 @@
           "offsetStart",
           "offsetEnd"
         ]
+      },
+      "CreateTextRedactionRequest": {
+        "type": "object",
+        "required": ["fileId", "docId"],
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the file to redact."
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Optional case ID to associate with this redaction."
+          },
+          "docId": {
+            "type": "string",
+            "description": "Client or workflow document/session identifier."
+          },
+          "detectEntities": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Optional structured detection definitions for text-based redaction."
+          }
+        }
+      },
+      "TextRedaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "caseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "docId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed"]
+          },
+          "outputS3Uri": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
-
 
     },
     "securitySchemes": {

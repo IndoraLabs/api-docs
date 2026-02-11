@@ -66,6 +66,15 @@
             ]
           },
           {
+            "group": "Text Redactions",
+            "pages": [
+              "api-reference/endpoints/get_file_text_redactions",
+              "api-reference/endpoints/get_single_text_redaction",
+              "api-reference/endpoints/delete_single_text_redaction",
+              "api-reference/endpoints/get_text_redaction_job"
+            ]
+          },
+          {
             "group": "Auto Redactions",
             "pages": [
               "api-reference/endpoints/post_:id_redact",
