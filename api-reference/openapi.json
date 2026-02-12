@@ -3025,150 +3025,111 @@
       }
     },
 
-"/files/{id}/redaction/signed-url": {
-  "get": {
-    "tags": ["Files"],
-    "summary": "Generate a signed download URL for a file variant",
-    "description": "Generates a presigned S3 URL for a specific file variant (original, parsed, or OCR). Supports browser behavior overrides such as inline vs attachment, custom filename, and expiration time.",
-    "parameters": [
-      {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "description": "The unique ID of the file."
-      },
-      {
-        "name": "variant",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string",
-          "enum": ["original", "parsed", "ocr"],
-          "default": "original"
-        },
-        "description": "Which file variant to sign. If not provided, defaults to `original`."
-      },
-      {
-        "name": "expires",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "integer",
-          "minimum": 60,
-          "maximum": 86400,
-          "default": 3600
-        },
-        "description": "Expiration time in seconds for the signed URL. Must be between 60 and 86400 seconds."
-      },
-      {
-        "name": "download",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "boolean",
-          "default": false
-        },
-        "description": "If true, sets Content-Disposition to attachment. Otherwise defaults to inline."
-      },
-      {
-        "name": "filename",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Optional filename override used in the Content-Disposition header."
-      },
-      {
-        "name": "contentType",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Optional Content-Type override for the response."
-      },
-      {
-        "name": "disposition",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Raw Content-Disposition header override. If provided, overrides download and filename behavior."
-      },
-      {
-        "name": "fallback",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "boolean",
-          "default": true
-        },
-        "description": "If true, automatically falls back to another available variant if the requested variant is not available. Fallback order: OCR → Parsed → Original."
-      }
-    ],
-    "responses": {
-      "200": {
-        "description": "Signed URL successfully generated.",
-        "content": {
-          "application/json": {
+    "/files/{id}/redaction/signed-url": {
+      "get": {
+        "tags": ["Files"],
+        "summary": "Generate a signed download URL for a file variant",
+        "description": "Generates a presigned S3 URL for a specific file variant (original, redact, or OCR). Supports browser behavior overrides such as inline vs attachment, custom filename, and expiration time.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "Presigned S3 URL."
-                },
-                "variant": {
-                  "type": "string",
-                  "enum": ["original", "parsed", "ocr"],
-                  "description": "The actual variant that was signed (may differ if fallback occurred)."
-                },
-                "bucket": {
-                  "type": "string",
-                  "description": "S3 bucket containing the file."
-                },
-                "key": {
-                  "type": "string",
-                  "description": "S3 object key."
-                },
-                "expires": {
-                  "type": "integer",
-                  "description": "Expiration time in seconds."
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The unique ID of the file."
+          },
+          {
+            "name": "variant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["original", "redact", "ocr"],
+              "default": "original"
+            },
+            "description": "Which file variant to sign. If not provided, defaults to `original`."
+          },
+          {
+            "name": "expires",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 86400,
+              "default": 3600
+            },
+            "description": "Expiration time in seconds for the signed URL. Must be between 60 and 86400 seconds."
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional filename override used in the Content-Disposition header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed URL successfully generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Presigned S3 URL."
+                    },
+                    "variant": {
+                      "type": "string",
+                      "enum": ["original", "parsed", "ocr"],
+                      "description": "The actual variant that was signed (may differ if fallback occurred)."
+                    },
+                    "bucket": {
+                      "type": "string",
+                      "description": "S3 bucket containing the file."
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "S3 object key."
+                    },
+                    "expires": {
+                      "type": "integer",
+                      "description": "Expiration time in seconds."
+                    }
+                  }
                 }
               }
             }
-          }
-        }
-      },
-      "400": {
-        "description": "Invalid request parameters.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
+          },
+          "400": {
+            "description": "Invalid request parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
             }
+          },
+          "401": {
+            "description": "Unauthorized (missing or invalid token)."
+          },
+          "404": {
+            "description": "File or requested variant not found."
+          },
+          "500": {
+            "description": "Internal server error."
           }
         }
-      },
-      "401": {
-        "description": "Unauthorized (missing or invalid token)."
-      },
-      "404": {
-        "description": "File or requested variant not found."
-      },
-      "500": {
-        "description": "Internal server error."
       }
-    }
-  }
-},
-
+    },
 
     "/files/attach": {
       "post": {
