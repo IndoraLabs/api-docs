@@ -78,8 +78,7 @@
             "group": "Auto Redactions",
             "pages": [
               "api-reference/endpoints/post_:id_redact",
-              "api-reference/endpoints/get_files_id_redaction_status",
-              "api-reference/endpoints/get_files_id_redaction_signed-url"
+              "api-reference/endpoints/get_files_id_redaction_status"
             ]
           },
           {

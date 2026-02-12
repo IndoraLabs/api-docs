@@ -2581,76 +2581,6 @@
         }
       }
     },
-    "/files/{id}/signed-url": {
-      "get": {
-        "tags": [
-          "Files"
-        ],
-        "summary": "GET /files/{id}/signed-url",
-        "description": "Retrieve full details for a single file by its ID. Includes metadata, status, flags, and linked cases. Use this endpoint to inspect or display the properties of a specific file in detail.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Path parameter `id`."
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200
-            },
-            "description": "Max items to return. Default 50."
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Offset for pagination. Default 0."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Files"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized (missing or invalid token)."
-          },
-          "404": {
-            "description": "Not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
-        }
-      }
-    },
     "/files/{id}/redact": {
       "post": {
         "tags": ["Files"],
@@ -3025,7 +2955,7 @@
       }
     },
 
-    "/files/{id}/redaction/signed-url": {
+    "/files/{id}/signed-url": {
       "get": {
         "tags": ["Files"],
         "summary": "Generate a signed download URL for a file variant",
