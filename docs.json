@@ -69,13 +69,12 @@
             "group": "Text Redactions",
             "pages": [
               "api-reference/endpoints/get_file_text_redactions",
-              "api-reference/endpoints/get_single_text_redaction",
-              "api-reference/endpoints/delete_single_text_redaction",
-              "api-reference/endpoints/get_text_redaction_job"
+              "api-reference/endpoints/patch_file_text_redaction",
+              "api-reference/endpoints/delete_single_text_redaction"
             ]
           },
           {
-            "group": "Auto Redactions",
+            "group": "Detection & Burn Redactions",
             "pages": [
               "api-reference/endpoints/post_:id_redact",
               "api-reference/endpoints/get_files_id_redaction_status"

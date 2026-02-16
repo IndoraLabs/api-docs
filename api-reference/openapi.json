@@ -2581,51 +2581,59 @@
         }
       }
     },
+
     "/files/{id}/redact": {
       "post": {
         "tags": ["Files"],
-        "summary": "POST /files/{id}/redact",
-        "description": "Start a redaction job for the specified file. This endpoint launches an asynchronous redaction process across supported file types (video, audio, image, or text). The response includes a job ID and S3 output location where the redacted file will eventually appear. Clients can poll the redaction status endpoint to track progress. This endpoint supports both manual and policy-based redaction.When policyIds are provided, the system extracts redaction rules from the referenced policy documents and combines them with any manual targets.",
+        "summary": "Start a redaction job",
+        "description": "Queues an asynchronous redaction job for a file. The system detects the file's media type (video, audio, image, or text) and dispatches it to the appropriate redaction pipeline. At least one policyId or manual target must be provided. The job runs asynchronously and returns immediately with a job ID and output S3 location.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": { "type": "string", "format": "uuid" },
-            "description": "The unique file ID to redact."
+            "description": "UUID of the file to redact."
           }
         ],
         "requestBody": {
-          "required": false,
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "targets": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "description": "List of redaction targets (e.g. ['Names', 'Addresses', 'Exclude police department contact info'])."
-                  },
                   "policyIds": {
                     "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Optional list of policy doc IDs to follow and dictate what are targets."
+                    "items": { "type": "string", "minLength": 1 },
+                    "description": "List of policy document IDs used to resolve redaction rules."
+                  },
+                  "targets": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "description": "Manual redaction targets such as labels or semantic instructions."
                   },
                   "sampleFps": {
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 30,
-                    "description": "Optional frame sampling rate for video redaction. Controls processing speed vs. accuracy."
+                    "description": "Frame sampling rate for video redaction. Lower values increase speed. Higher values increase accuracy."
+                  },
+                  "executionMode": {
+                    "type": "string",
+                    "enum": ["detect", "burn", "auto"],
+                    "default": "auto",
+                    "description": "Redaction execution behavior. 'auto' performs detection and burning. 'detect' runs detection only. 'burn' applies existing redaction boxes without detection."
                   }
                 }
+               
               }
             }
           }
         },
         "responses": {
           "202": {
-            "description": "Redaction job accepted and queued for processing.",
+            "description": "Redaction job successfully queued.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2634,12 +2642,12 @@
                     "ok": {
                       "type": "boolean",
                       "example": true,
-                      "description": "Indicates that the request was successfully queued."
+                      "description": "Indicates the job was accepted."
                     },
                     "jobId": {
                       "type": "string",
                       "format": "uuid",
-                      "description": "Unique identifier for the redaction job."
+                      "description": "Unique job identifier."
                     },
                     "status": {
                       "type": "string",
@@ -2648,32 +2656,35 @@
                     },
                     "outputS3Uri": {
                       "type": "string",
-                      "description": "S3 URI where the redacted output will be written once processing completes."
+                      "description": "S3 URI where the redacted file will be written after processing completes."
                     },
                     "detectedType": {
                       "type": "string",
                       "enum": ["video", "audio", "image", "text"],
-                      "description": "Detected file media type that determined which redaction pipeline to run."
+                      "description": "Detected media type used to determine processing pipeline."
                     }
-                  }
+                  },
+                  "required": ["ok", "jobId", "status", "outputS3Uri", "detectedType"]
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request payload or unsupported parameters.",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
+            "description": "Invalid request. Occurs when no policyIds or targets are provided, or payload validation fails."
           },
-          "401": { "description": "Unauthorized (missing or invalid token)." },
-          "404": { "description": "File not found or original S3 path unavailable." },
-          "500": { "description": "Internal server error while enqueueing job." }
+          "401": {
+            "description": "Unauthorized. API key missing or invalid."
+          },
+          "404": {
+            "description": "Original file not found or storage path unavailable."
+          },
+          "500": {
+            "description": "Internal server error while creating or enqueueing the job."
+          }
         }
       }
     },
+
     "/files/{id}/redaction": {
       "get": {
         "tags": [
@@ -3486,6 +3497,132 @@
           },
           "401": { "description": "Unauthorized." },
           "404": { "description": "No redactions found." }
+        }
+      }
+    },
+
+    "/text-detections/file/{fileId}/rect": {
+      "patch": {
+        "tags": ["Redactions"],
+        "summary": "Create or update a single redaction box",
+        "description": "Creates or updates a single redaction box for a file. If the rect includes an existing ID, the rect is updated. If no ID is provided, a new manual rect is created and assigned a generated ID. The response returns the full updated list of redaction boxes for the file.",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "UUID of the file whose redaction details will be modified."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rect"],
+                "properties": {
+                  "rect": {
+                    "type": "object",
+                    "required": ["page", "x", "y", "w", "h", "label"],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Existing rect ID. If omitted, a new rect will be created."
+                      },
+                      "page": {
+                        "type": "number",
+                        "description": "1-based page number."
+                      },
+                      "x": {
+                        "type": "number",
+                        "description": "X coordinate in document coordinate space."
+                      },
+                      "y": {
+                        "type": "number",
+                        "description": "Y coordinate in document coordinate space."
+                      },
+                      "w": {
+                        "type": "number",
+                        "description": "Width of the rect."
+                      },
+                      "h": {
+                        "type": "number",
+                        "description": "Height of the rect."
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "Semantic label for the redaction (e.g. 'SSN', 'Name')."
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Optional type classification."
+                      },
+                      "reason": {
+                        "type": "string",
+                        "description": "Optional explanation or justification for the redaction."
+                      },
+                      "spanIds": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Optional associated text span IDs."
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": ["auto", "manual"],
+                        "description": "Origin of the rect."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Redaction details updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "Full updated list of redaction boxes for the file.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "page": { "type": "number" },
+                      "x": { "type": "number" },
+                      "y": { "type": "number" },
+                      "w": { "type": "number" },
+                      "h": { "type": "number" },
+                      "label": { "type": "string" },
+                      "type": { "type": "string" },
+                      "reason": { "type": "string" },
+                      "spanIds": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": ["auto", "manual"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request payload."
+          },
+          "404": {
+            "description": "No redaction details found for this file."
+          },
+          "500": {
+            "description": "Internal server error while updating redaction details."
+          }
         }
       }
     },
