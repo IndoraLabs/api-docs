@@ -3627,57 +3627,72 @@
       }
     },
 
-    "/text-detections/{id}": {
-      "get": {
-        "tags": ["Detections"],
-        "summary": "Get a text redaction record",
-        "description": "Retrieve a single text redaction record by ID.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Text redaction record.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "redaction": {
-                      "$ref": "#/components/schemas/TextRedaction"
+    "/text-detections/file/{fileId}/rect/{id}": {
+      "delete": {
+          "tags": ["Redactions"],
+          "summary": "Delete a single redaction box",
+          "description": "Deletes a redaction box from a file's detection data. Associated spans that are no longer referenced by any remaining rects are automatically removed. The response returns the full updated list of redaction boxes.",
+          "parameters": [
+            {
+              "name": "fileId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string", "format": "uuid" },
+              "description": "UUID of the file whose redaction details will be modified."
+            },
+            {
+              "name": "rectId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "Identifier of the redaction box to delete."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Redaction box successfully deleted.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "description": "Full updated list of redaction boxes for the file.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "page": { "type": "number" },
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "w": { "type": "number" },
+                        "h": { "type": "number" },
+                        "label": { "type": "string" },
+                        "type": { "type": "string" },
+                        "reason": { "type": "string" },
+                        "spanIds": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": ["auto", "manual"]
+                        }
+                      }
                     }
                   }
                 }
               }
+            },
+            "404": {
+              "description": "Returned if no redaction details exist for the file or if the specified rect ID does not exist."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "500": {
+              "description": "Internal server error while deleting the redaction box."
             }
-          },
-          "404": { "description": "Redaction not found." },
-          "401": { "description": "Unauthorized." }
-        }
-      },
-      "delete": {
-        "tags": ["Detections"],
-        "summary": "Delete a text redaction record",
-        "description": "Delete a text redaction metadata record. Does not delete the redacted S3 file.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
           }
-        ],
-        "responses": {
-          "204": { "description": "Deleted successfully." },
-          "404": { "description": "Redaction not found." },
-          "401": { "description": "Unauthorized." }
         }
-      }
     },
 
     "/text-detections/job/{fileId}": {
